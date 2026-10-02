@@ -76,3 +76,5 @@ Sipariş detayında Sipariş özetini kopyala düğmesi müşteri, ürünler ve 
 ## Havale/EFT ile ödeme
 
 Canlı akış: Onay bekliyor → WhatsApp üzerinden ürünler, teslim zamanı ve teslimat dahil kesin tutar netleştirilir → IBAN bilgileri gönderilir → Ödeme bekleniyor → hesap hareketinden ödeme doğrulanır → Ödeme alındı → Hazırlanıyor → Teslim edildi. Onaylandı eski kayıtlarla uyumluluk için tutulur; ödeme doğrulaması anlamına gelmez. Banka entegrasyonu ve otomatik ödeme kontrolü yoktur. Yönetici durumları elle günceller. Dekont veya WhatsApp mesajı otomatik ödeme onayı üretmez. Hesap bilgileri siteye eklenmemiştir; işletme WhatsApp üzerinden paylaşır. Sipariş numarası havale açıklaması olarak istenir. Genel talimat Ayarlar bölümünden düzenlenir.
+
+Müşterinin WhatsApp onay bağlantısı kaydedilmiş siparişin sunucuda oluşturulan tam özetini içerir: müşteri ve telefon, ürünler/adetler, teslimat türü/şehir/adres, tarih/saat tercihi, not, ara toplam, indirim, teslimat ücreti veya bekleme bilgisi ve toplam. Aynı isteğin tekrarında önceki kaydın mesajı döner; tarayıcıdaki sonradan değiştirilmiş formdan oluşturulmaz. Mesajı müşteri WhatsApp üzerinden kendisi gönderir.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {cleanCart,submissionKey} from '../lib/cart.ts';
 import {priceBasket,tastingSelection} from '../lib/pricing.ts';
-import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary} from '../lib/types.ts';
+import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary,customerOrderMessage} from '../lib/types.ts';
 import {readJson} from '../lib/http.ts';
 assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
 assert.deepEqual(cleanCart(null),{});
@@ -68,3 +68,8 @@ assert.deepEqual(productCare({category:'Kurabiyeler'},{}),{storage:defaultStorag
 assert.deepEqual(productCare({category:'Kurabiyeler',storageInfo:'Soğuk tutun',heatingInfo:'Isıtmayın'},{}),{storage:'Soğuk tutun',heating:'Isıtmayın'});
 assert.deepEqual(productCare({category:'Sandviç'},{}),{storage:'',heating:''});
 console.log('PASS: pending delivery summary, pickup privacy, care defaults and product overrides.');
+
+const message=customerOrderMessage({...o,number:'PR-MESSAGE',items:[{id:'cookie-1',name:'Gülpembe',price:16000,qty:2}],date:'Pazar 15.00',address:'Test sokak 5',note:'Hediye kutusu'});
+for(const detail of ['PR-MESSAGE','2 × Gülpembe','Pazar 15.00','Test sokak 5','Hediye kutusu','Telefon:','Ara toplam:','İndirim:','Teslimat hariç ürün toplamı:'])assert.ok(message.includes(detail),detail);
+assert.ok(!customerOrderMessage({...o,demo:true,items:[]}).includes('IBAN'));
+console.log('PASS: complete customer WhatsApp message and demo distinction.');

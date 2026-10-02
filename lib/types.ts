@@ -29,3 +29,7 @@ export function filterOrders(orders:Order[],query:string,status:string,mode:stri
 export function orderSummary(o:Order){
  return [o.demo?'Pink Rose · Deneme siparişi':'Pink Rose · Sipariş talebi',o.number,'Müşteri: '+o.customer,'Telefon: '+o.phone,'Durum: '+orderStatus(o.status),o.type+(o.city?' · '+o.city:''),o.type==='Teslimat'&&o.address?'Adres: '+o.address:'',o.date?'Zaman tercihi: '+o.date:'',...o.items.map(p=>p.qty+' × '+p.name+' · '+money(p.price*p.qty)),'Ara toplam: '+money(o.subtotal),'İndirim: '+money(o.discount),'Teslimat: '+(o.type==='Gel-al'?'Ücretsiz':o.deliveryFeePending?'Ücret henüz belirlenmedi':money(o.deliveryFee)),(o.deliveryFeePending?'Teslimat hariç ürün toplamı: ':'Toplam: ')+money(o.total),o.note?'Not: '+o.note:''].filter(Boolean).join('\n');
 }
+
+export function customerOrderMessage(o:Order){
+ return 'Merhaba Pink Rose, sipariş bilgilerim aşağıdaki gibidir.\n\n'+orderSummary(o)+'\n'+(!o.date?'Zaman tercihi: Belirtilmedi\n':'')+(!o.note?'Not: Yok\n':'')+'\n'+(o.demo?'Bu bir deneme siparişidir.':'Kesin toplamı, teslim zamanını ve ödeme için IBAN bilgilerini öğrenmek istiyorum. Ödeme kontrolünden sonra hazırlığa başlanacağını biliyorum.')+(o.deliveryFeePending?' Teslimat ücretini adresime göre netleştirelim.':'');
+}
