@@ -72,3 +72,7 @@ Varsayılan bilgi: siparişleri teslim tarihinden 2–3 gün önce verin. Ana sa
 Isıtma metni kısa, kontrollü ılıtma için başlangıç talimatıdır; ürünün gramajı, dolgusu ve fırın davranışıyla kontrol edilmelidir. Başka üreticinin raf ömrü Pink Rose ürünlerine aktarılmamıştır. Krema gibi soğuk saklama gerektiren dolgular için ürünün tarifine uygun özel talimat ve tüketim tarihi kullanılır. Araştırma: https://levainbakery.com/pages/faq ve https://www.fda.gov/food/people-risk-foodborne-illness/holiday-goodies-food-safety-moms-be
 
 Sipariş detayında Sipariş özetini kopyala düğmesi müşteri, ürünler ve tutarları kopyalar. Teslimat ücreti bekleniyorsa toplam açıkça teslimat hariç gösterilir. Tarayıcı panoya izin vermezse seçilebilir metin alanı açılır.
+
+## Havale/EFT ile ödeme
+
+Canlı akış: Onay bekliyor → WhatsApp üzerinden ürünler, teslim zamanı ve teslimat dahil kesin tutar netleştirilir → IBAN bilgileri gönderilir → Ödeme bekleniyor → hesap hareketinden ödeme doğrulanır → Ödeme alındı → Hazırlanıyor → Teslim edildi. Onaylandı eski kayıtlarla uyumluluk için tutulur; ödeme doğrulaması anlamına gelmez. Banka entegrasyonu ve otomatik ödeme kontrolü yoktur. Yönetici durumları elle günceller. Dekont veya WhatsApp mesajı otomatik ödeme onayı üretmez. Hesap bilgileri siteye eklenmemiştir; işletme WhatsApp üzerinden paylaşır. Sipariş numarası havale açıklaması olarak istenir. Genel talimat Ayarlar bölümünden düzenlenir.
