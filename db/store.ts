@@ -1,4 +1,5 @@
 import {service} from '@/lib/supabase/service';
+import {orderStatus} from '@/lib/types';
 import {seed} from '@/lib/seed';
 import type {Catalog,Order,Product,Campaign} from '@/lib/types';
 
@@ -25,7 +26,7 @@ export async function put(id:string,kind:string,data:unknown){
 }
 export async function getOrders():Promise<Order[]>{
   const {data,error}=await service().from('orders').select('data').order('created',{ascending:false}).limit(500);check(error);
-  return (data || []).map(r=>r.data as Order);
+  return (data || []).map(r=>({...r.data,status:orderStatus(r.data.status)}) as Order);
 }
 export async function orderByKey(key:string):Promise<Order|null>{
   const {data,error}=await service().from('orders').select('data').eq('request_key',key).maybeSingle();check(error);

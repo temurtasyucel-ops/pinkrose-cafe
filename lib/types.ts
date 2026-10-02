@@ -5,4 +5,13 @@ export type Catalog={products:Product[];categories:string[];campaigns:Campaign[]
 export type Order={id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
 export const money=(c:number)=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(c/100);
 export const liveCampaign=(c:Campaign)=>c.active&&(!c.start||new Date(c.start).getTime()<=Date.now())&&(!c.end||new Date(c.end).getTime()>=Date.now());
-export const statuses=['Yeni','Onaylandı','Hazırlanıyor','Teslim edildi','İptal'];
+export const statuses=['Onay bekliyor','Onaylandı','Hazırlanıyor','Teslim edildi','İptal'];
+
+export const orderStatus=(status:string)=>status==='Yeni'?'Onay bekliyor':status;
+export function customerWhatsApp(order:Order):string|null{
+ const digits=order.phone.replace(/\D/g,'');
+ const phone=/^05\d{9}$/.test(digits)?'90'+digits.slice(1):/^5\d{9}$/.test(digits)?'90'+digits:digits;
+ if(!/^905\d{9}$/.test(phone))return null;
+ const message='Merhaba '+order.customer+', Pink Rose Cafe’den yazıyoruz. '+order.number+' numaralı '+(order.demo?'deneme siparişiniz':'sipariş talebiniz')+' hakkında sizinle görüşmek istiyoruz. '+(order.deliveryFeePending?'Teslimat hariç ürün toplamı: ':'Toplam: ')+money(order.total)+(order.deliveryFeePending?'. Teslimat ücretini adresinize göre netleştirelim.':'.');
+ return 'https://wa.me/'+phone+'?text='+encodeURIComponent(message);
+}
