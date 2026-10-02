@@ -38,8 +38,12 @@ try:
    if call('/')[0]==200: break
   except Exception: time.sleep(.1)
  assert call('/panel/login')[0]==200
- assert call('/api/admin')[0]==403
- assert call('/api/upload',{})[0]==400
+ assert b'noindex' in call('/panel/login')[1]
+ assert b'https://www.pinkrosecafe.com.tr' in call('/sitemap.xml')[1]
+ assert b'Disallow: /panel' in call('/robots.txt')[1]
+ assert call('/missing-page')[0]==404
+ assert call('/api/admin')[0]==401
+ assert call('/api/upload',{})[0]==401
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==7,(status,c)
  key=str(uuid.uuid4()); body={'key':key,'customer':'Test Customer','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-1','qty':2,'price':1}]}
  status,o=call('/api/orders',body); assert status==200 and o['total']==30000 and o['demo'] is True,(status,o)

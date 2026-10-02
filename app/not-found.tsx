@@ -1,0 +1,1 @@
+export default function NotFound(){return <main className="message"><a href="/" className="wordmark">Pink Rose<span>CAFE</span></a><h1>Bu sayfayı bulamadık.</h1><p>Kurabiyelerimiz ana sayfada sizi bekliyor.</p><a href="/" className="button">Ana sayfaya dön</a></main>;}

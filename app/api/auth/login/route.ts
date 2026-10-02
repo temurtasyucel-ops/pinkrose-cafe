@@ -1,4 +1,4 @@
-import {sameOrigin,admin} from '@/lib/admin';
+import {sameOrigin,admin,AdminError} from '@/lib/admin';
 import {authClient} from '@/lib/supabase/server';
 import {rateLimit} from '@/lib/rate-limit';
 
@@ -11,7 +11,7 @@ export async function POST(request:Request){
     const auth=await authClient();
     const {error}=await auth.auth.signInWithPassword({email:email.trim(),password});
     if(error)return Response.json({error:'E-posta veya şifre hatalı.'},{status:401});
-    try{await admin();}catch{await auth.auth.signOut();return Response.json({error:'Bu hesabın yönetim paneli yetkisi bulunmuyor.'},{status:403});}
+    try{await admin();}catch(e){await auth.auth.signOut();if(e instanceof AdminError&&e.status===403)return Response.json({error:'Bu hesabın yönetim paneli yetkisi bulunmuyor.'},{status:403});throw e;}
     return Response.json({ok:true},{headers:{'Cache-Control':'no-store'}});
   }catch(e){console.error('Login:',e);return Response.json({error:'Giriş hizmeti şu anda kullanılamıyor.'},{status:503});}
 }

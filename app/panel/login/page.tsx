@@ -21,7 +21,7 @@ export default function Login(){
       <label>E-posta<input type="email" name="email" required autoComplete="username" style={{display:'block',width:'100%',padding:12,border:'1px solid #e8bbc9',borderRadius:10}}/></label>
       <label>Şifre<input type="password" name="password" required autoComplete="current-password" maxLength={256} style={{display:'block',width:'100%',padding:12,border:'1px solid #e8bbc9',borderRadius:10}}/></label>
       {error && <p role="alert">{error}</p>}
-      <button type="submit" className="primary-button" disabled={busy}>{busy?'Giriş yapılıyor…':'Giriş yap'}</button>
+      <button type="submit" className="button" disabled={busy}>{busy?'Giriş yapılıyor…':'Giriş yap'}</button>
     </form>
   </main>;
 }

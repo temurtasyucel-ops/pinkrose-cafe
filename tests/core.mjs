@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {cleanCart,submissionKey} from '../lib/cart.ts';
+import {priceBasket} from '../lib/pricing.ts';
+import {deliveryQuote,filterOrders,customerWhatsApp} from '../lib/types.ts';
+import {readJson} from '../lib/http.ts';
+assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
+assert.deepEqual(cleanCart(null),{});
+const first=submissionKey(null,'basket1',()=> 'key1');
+assert.equal(submissionKey(first,'basket1',()=> 'key2').key,'key1');
+assert.equal(submissionKey(first,'basket2',()=> 'key2').key,'key2');
+const catalog={packages:[{qty:2,price:30000},{qty:4,price:60000},{qty:6,price:90000},{qty:8,price:110000}],tastingPrice:100000};
+assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:2,price:16000},{id:'cookie-2',qty:1,price:10000}]).packageDiscount,2000);
+assert.equal(priceBasket(catalog,Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),qty:1,price:16000}))).packageDiscount,12000);
+// Independent exhaustive allocation checks each possible box subset, not the pricing DP.
+function exhaustive(prices,boxes){
+ const cache=new Map();
+ function solve(mask){if(!mask)return 0;if(cache.has(mask))return cache.get(mask);
+  const first=prices.findIndex((_,i)=>mask&(1<<i));let best=prices[first]+solve(mask^(1<<first));
+  for(let subset=mask;subset;subset=(subset-1)&mask){if(!(subset&(1<<first)))continue;const size=subset.toString(2).replaceAll('0','').length;for(const box of boxes)if(box.qty===size)best=Math.min(best,box.price+solve(mask^subset));}
+  cache.set(mask,best);return best;
+ }return solve((1<<prices.length)-1);
+}
+for(let k=0;k<20;k++){
+ const prices=Array.from({length:6},(_,i)=>10000+((k*7+i*3)%10)*1000);
+ const basket=prices.map((price,i)=>({id:'cookie-'+(i+1),qty:1,price}));
+ const result=priceBasket(catalog,basket);
+ assert.equal(result.subtotal-result.packageDiscount,exhaustive(prices,catalog.packages));
+}
+const o={number:'PR-TEST',customer:'İPEK ŞEN',phone:'05060584705',type:'Teslimat',subtotal:32000,discount:2000,total:30000,status:'Yeni',deliveryFee:0,deliveryFeePending:true,demo:false};
+const quoted=deliveryQuote(o,7500);assert.equal(quoted.total,37500);assert.equal(deliveryQuote(quoted,5000).total,35000);
+assert.equal(deliveryQuote(quoted,0).total,30000);assert.equal(quoted.deliveryFeePending,false);
+for(const fee of [-1,NaN,1.1,10000001])assert.throws(()=>deliveryQuote(o,fee));
+assert.throws(()=>deliveryQuote({...o,type:'Gel-al'},1));
+assert.equal(filterOrders([o],'ipek','Onay bekliyor','Canlı').length,1);
+assert.equal(filterOrders([o],'0506 058 47 05','Tümü','Canlı').length,1);
+assert.equal(filterOrders([o],'','Tümü','Deneme').length,0);
+for(const phone of ['0506 058 47 05','5060584705','+90 506 058 47 05'])assert.equal(new URL(customerWhatsApp({...o,phone})).pathname,'/905060584705');
+await assert.rejects(readJson(new Response('<html>',{status:500})),/İşlem tamamlanamadı/);
+await assert.rejects(readJson(Response.json({error:'Yetki yok'},{status:403})),/Yetki yok/);
+console.log('PASS: cart, retry keys, mixed-price boxes (20 exhaustive cases), quotes, filters, WhatsApp and HTTP errors.');

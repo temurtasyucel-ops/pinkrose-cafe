@@ -24,7 +24,16 @@ npm ci
 npm run dev
 ```
 
-`npm run typecheck` ve `npm run build` doğrulamaları kullanılabilir. Node.js 22 veya daha güncel bir sürüm gerekir.
+Node.js 22.13 veya daha güncel bir sürüm gerekir. Doğrulama komutları:
+
+```
+node --experimental-strip-types tests/core.mjs
+npm run typecheck
+npm run build
+python tests/migration-smoke.py
+```
+
+HTTP testi yerel bir Supabase taklidi kullanır; gerçek sipariş veya hesap oluşturmaz. Canlı hesap ve tarayıcı kontrolleri ayrıca yapılır.
 
 ## Geçiş durumu
 
@@ -39,3 +48,9 @@ Siparişler başlangıçta Onay bekliyor durumundadır. Panelde müşteri, telef
 Teslimat siparişinin detayında adrese göre ücreti TL olarak girin. Sunucu toplamı ürün bedeli eksi indirim artı teslimat olarak hesaplar; güncellenen ücret öncekinin yerini alır. Gel-al siparişine ücret eklenemez. Eş zamanlı sipariş değişikliklerinde yenileyip tekrar deneyin.
 
 Ayarlar bölümündeki gel-al adresi, saatleri ve HTTPS harita bağlantısı isteğe bağlıdır. Doldurulan bilgiler vitrinde ve gel-al seçilen sipariş formunda gösterilir.
+
+## Vitrin ve panel davranışı
+
+Sepette yalnızca ürün kimliği ve adetler bu tarayıcıda saklanır; müşteri bilgileri kaydedilmez. Katalog yenilendiğinde satışa kapalı veya tükenen ürünler sepetten çıkarılır. Aynı sipariş isteğini yeniden denemek aynı anahtarı kullanır; form veya sepet değişirse yeni anahtar oluşturulur. Kutu indirimi farklı tekli fiyatları ve tadım setini birlikte dikkate alır.
+
+Sipariş sekmesi görünürken liste 30 saniyede bir yenilenir. Bu yenileme kaydedilmemiş ayar değişikliklerinin üzerine yazmaz. Panel arama motorlarına kapalıdır; ana sayfa için site haritası ve paylaşım bilgileri tanımlıdır.

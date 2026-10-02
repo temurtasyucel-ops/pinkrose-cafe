@@ -1,5 +1,5 @@
 import {service} from '@/lib/supabase/service';
-import {admin,sameOrigin} from '@/lib/admin';
+import {admin,sameOrigin,AdminError} from '@/lib/admin';
 export async function POST(req:Request){
   try{
     sameOrigin(req);await admin();
@@ -12,5 +12,5 @@ export async function POST(req:Request){
     const {error}=await service().storage.from('product-images').upload(key,bytes,{contentType:file.type,upsert:false});
     if(error){console.error('Storage:',error.message);throw Error('Fotoğraf yüklenemedi.');}
     return Response.json({url:'/api/images/'+key});
-  }catch(e){return Response.json({error:(e as Error).message},{status:400});}
+  }catch(e){return Response.json({error:(e as Error).message},{status:e instanceof AdminError?e.status:400});}
 }
