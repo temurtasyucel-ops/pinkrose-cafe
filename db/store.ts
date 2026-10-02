@@ -1,5 +1,5 @@
 import {service} from '@/lib/supabase/service';
-import {orderStatus} from '@/lib/types';
+import {orderStatus,deliveryQuote} from '@/lib/types';
 import {seed} from '@/lib/seed';
 import type {Catalog,Order,Product,Campaign} from '@/lib/types';
 
@@ -36,9 +36,12 @@ export async function saveOrder(key:string,order:Order):Promise<Order>{
   const {error}=await service().from('orders').upsert({id:order.id,request_key:key,data:order,created:order.created},{onConflict:'request_key',ignoreDuplicates:true});check(error);
   const saved=await orderByKey(key);if(!saved)throw Error('Sipariş kaydedilemedi.');return saved;
 }
-export async function updateStatus(id:string,status:string){
-  const client=service();
-  const {data,error}=await client.from('orders').select('data').eq('id',id).maybeSingle();check(error);
-  if(!data)throw Error('Sipariş bulunamadı.');
-  const {error:updateError}=await client.from('orders').update({data:{...data.data,status}}).eq('id',id);check(updateError);
+async function changeOrder(id:string,change:(order:Order)=>Order){
+ const client=service();
+ const {data,error}=await client.from('orders').select('data').eq('id',id).maybeSingle();check(error);
+ if(!data)throw Error('Sipariş bulunamadı.');
+ const {data:updated,error:updateError}=await client.from('orders').update({data:change(data.data as Order)}).eq('id',id).eq('data',JSON.stringify(data.data)).select('id').maybeSingle();check(updateError);
+ if(!updated)throw Error('Sipariş başka bir işlemle güncellendi. Yenileyip tekrar deneyin.');
 }
+export async function updateStatus(id:string,status:string){await changeOrder(id,o=>({...o,status}));}
+export async function updateDelivery(id:string,fee:number){await changeOrder(id,o=>deliveryQuote(o,fee));}
