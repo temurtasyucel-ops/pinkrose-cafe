@@ -8,7 +8,7 @@ export async function initialize(){
   const rows=[
     {id:'settings',kind:'settings',data:seed.settings},
     {id:'categories',kind:'categories',data:seed.categories},
-    {id:'packages',kind:'packages',data:{packages:seed.packages,tastingPrice:seed.tastingPrice}},
+    {id:'packages',kind:'packages',data:{packages:seed.packages,tastingPrice:seed.tastingPrice,tastingIds:seed.tastingIds}},
     ...seed.products.map(p=>({id:p.id,kind:'product',data:p}))
   ];
   const {error}=await service().from('records').upsert(rows,{onConflict:'id',ignoreDuplicates:true});check(error);

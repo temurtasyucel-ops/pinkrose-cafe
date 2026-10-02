@@ -68,6 +68,18 @@ try:
  assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==409
  records['settings']['data']['ordersPaused']=False
  assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==200
+ pumpkin=str(uuid.uuid4())
+ records[pumpkin]={'id':pumpkin,'kind':'product','data':{**records['cookie-3']['data'],'id':pumpkin,'name':'Bal Kabaklı','boxEligible':True}}
+ seasonal_body={**body,'key':str(uuid.uuid4()),'items':[{'id':pumpkin,'qty':9}]}
+ status,nine=call('/api/orders',seasonal_body);assert status==200 and nine['total']==126000,(status,nine)
+ records['packages']['data']['tastingIds']=['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7']
+ records['cookie-3']['data']['active']=False
+ seasonal_body['items']=[{'id':id,'qty':1} for id in records['packages']['data']['tastingIds']]
+ seasonal_body['key']=str(uuid.uuid4())
+ status,seasonal=call('/api/orders',seasonal_body);assert status==200 and seasonal['total']==100000,(status,seasonal)
+ records[pumpkin]['data']['boxEligible']=False
+ seasonal_body['key']=str(uuid.uuid4());seasonal_body['items']=[{'id':pumpkin,'qty':8}]
+ status,excluded=call('/api/orders',seasonal_body);assert status==200 and excluded['total']==128000,(status,excluded)
  records['cookie-1']['data']['active']=False
  assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==400
  print('PASS: paused live/demo requests, no insert while paused, previous retry, reopening, live/demo mode, retry after mode switch, inactive product rejection, catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')

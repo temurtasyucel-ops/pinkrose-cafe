@@ -58,3 +58,9 @@ Sipariş sekmesi görünürken liste 30 saniyede bir yenilenir. Bu yenileme kayd
 Ayarlar → Yeni sipariş alımını geçici durdur seçeneği, canlı ve deneme taleplerini sunucuda engeller. Mevcut bir isteğin aynı anahtarla yeniden denenmesi önceki sonucu döndürür. Mola mesajı menü üzerinde gösterilir. Alanların eski kayıtlarda bulunmaması sipariş alımını açık tutar; SQL geçişi gerekmez.
 
 Panelde ürün/kampanya penceresini kapatma, sekme değiştirme, çıkış ve sayfa yenileme sırasında kaydedilmemiş düzenlemeler için uyarı gösterilir. Tarayıcının sayfa kapatma uyarısı kendi standart metnini kullanır.
+
+## Sezonluk ürünler ve paketler
+
+Ürünlerde Kutu paketlerine dahil seçeneği, kimliğine veya menüdeki sıra sayısına bakılmadan kutu hesabına katılımı belirler. Eski yedi üründe bu alan yoksa dahil kabul edilir. Yeni ürün formunda varsayılan açık gelir; farklı ürün gruplarında kapatılabilir.
+
+Tanışma paketinin yedi benzersiz çeşidi Paketler sekmesinden seçilir. Menüye sekizinci veya dokuzuncu ürün eklenmesi bu seçimi ve fiyatı değiştirmez. Seçili bir ürün görünmez, tükenmiş veya kutu dışında ise tanışma paketi alınamaz ve tanışma indirimi uygulanmaz. Yedi çeşitten oluşan tam set ve kalan adetler için uygun kutu kombinasyonu birlikte hesaplanır. Seçim bulunmayan eski kayıtlarda orijinal yedi çeşit kullanılır. SQL geçişi gerekmez.
