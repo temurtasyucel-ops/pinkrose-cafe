@@ -1,8 +1,8 @@
-export type Product={id:string;name:string;category:string;description:string;ingredients:string;allergens:string;price:number;oldPrice:number;image:string;insideImage?:string;weight?:string;active:boolean;stock:boolean;featured:boolean;boxEligible?:boolean;storageInfo?:string;heatingInfo?:string;sort:number};
-export type Campaign={id:string;title:string;text:string;discount:number;start:string;end:string;active:boolean};
-export type Settings={whatsapp:string;instagram:string;deliveryText:string;deliveryFee:number;deliveryQuoted?:boolean;pickupAddress?:string;pickupHours?:string;pickupMapUrl?:string;ordersPaused?:boolean;pauseMessage?:string;paymentUrl?:string;paymentText?:string;preparationText?:string;storageInfo?:string;heatingInfo?:string;demo:boolean};
-export type Catalog={products:Product[];categories:string[];campaigns:Campaign[];settings:Settings;packages:{qty:number;name:string;price:number}[];tastingPrice:number;tastingIds?:string[]};
-export type Order={id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
+export type Product={english?:Record<string,string>;id:string;name:string;category:string;description:string;ingredients:string;allergens:string;price:number;oldPrice:number;image:string;insideImage?:string;weight?:string;active:boolean;stock:boolean;featured:boolean;boxEligible?:boolean;storageInfo?:string;heatingInfo?:string;sort:number};
+export type Campaign={english?:Record<string,string>;id:string;title:string;text:string;discount:number;start:string;end:string;active:boolean};
+export type Settings={english?:Record<string,string>;whatsapp:string;instagram:string;deliveryText:string;deliveryFee:number;deliveryQuoted?:boolean;pickupAddress?:string;pickupHours?:string;pickupMapUrl?:string;ordersPaused?:boolean;pauseMessage?:string;paymentUrl?:string;paymentText?:string;preparationText?:string;storageInfo?:string;heatingInfo?:string;demo:boolean};
+export type Catalog={products:Product[];categories:string[];campaigns:Campaign[];settings:Settings;packages:{english?:Record<string,string>;qty:number;name:string;price:number}[];tastingPrice:number;tastingIds?:string[]};
+export type Order={language?:'tr'|'en';id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
 export const money=(c:number)=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(c/100);
 export const liveCampaign=(c:Campaign)=>c.active&&(!c.start||new Date(c.start).getTime()<=Date.now())&&(!c.end||new Date(c.end).getTime()>=Date.now());
 export const statuses=['Onay bekliyor','Ödeme bekleniyor','Ödeme alındı','Onaylandı','Hazırlanıyor','Teslim edildi','İptal'];
@@ -12,7 +12,7 @@ export function customerWhatsApp(order:Order):string|null{
  const digits=order.phone.replace(/\D/g,'');
  const phone=/^05\d{9}$/.test(digits)?'90'+digits.slice(1):/^5\d{9}$/.test(digits)?'90'+digits:digits;
  if(!/^905\d{9}$/.test(phone))return null;
- const message='Merhaba '+order.customer+', Pink Rose Cafe’den yazıyoruz. '+order.number+' numaralı '+(order.demo?'deneme siparişiniz':'sipariş talebiniz')+' hakkında sizinle görüşmek istiyoruz. '+(order.deliveryFeePending?'Teslimat hariç ürün toplamı: ':'Toplam: ')+money(order.total)+(order.deliveryFeePending?'. Teslimat ücretini adresinize göre netleştirelim.':'.');
+ const message=order.language==='en'?'Hello '+order.customer+', this is Pink Rose Cafe. We would like to discuss your '+(order.demo?'test order':'order request')+' '+order.number+'. '+(order.deliveryFeePending?'Product total (delivery excluded): ':'Total: ')+new Intl.NumberFormat('en-GB',{style:'currency',currency:'TRY'}).format(order.total/100)+(order.deliveryFeePending?'. Let’s confirm the delivery fee for your address.':'.'):'Merhaba '+order.customer+', Pink Rose Cafe’den yazıyoruz. '+order.number+' numaralı '+(order.demo?'deneme siparişiniz':'sipariş talebiniz')+' hakkında sizinle görüşmek istiyoruz. '+(order.deliveryFeePending?'Teslimat hariç ürün toplamı: ':'Toplam: ')+money(order.total)+(order.deliveryFeePending?'. Teslimat ücretini adresinize göre netleştirelim.':'.');
  return 'https://wa.me/'+phone+'?text='+encodeURIComponent(message);
 }
 
@@ -31,6 +31,11 @@ export function orderSummary(o:Order){
 }
 
 export function customerOrderMessage(o:Order){
+ if(o.language==='en'){
+  const amount=(c:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'TRY'}).format(c/100);
+  return ['Hello Pink Rose, here are my order details.','',o.demo?'Pink Rose · Test order':'Pink Rose · Order request',o.number,'Customer: '+o.customer,'Phone: '+o.phone,o.type==='Gel-al'?'Collection':'Delivery'+(o.city?' · '+o.city:''),o.type==='Teslimat'&&o.address?'Address: '+o.address:'','Preferred date/time: '+(o.date||'Not specified'),...o.items.map(p=>p.qty+' × '+p.name+' · '+amount(p.price*p.qty)),'Subtotal: '+amount(o.subtotal),'Discount: '+amount(o.discount),'Delivery: '+(o.type==='Gel-al'?'Free collection':o.deliveryFeePending?'Fee to be confirmed':amount(o.deliveryFee)),(o.deliveryFeePending?'Product total (delivery excluded): ':'Total: ')+amount(o.total),'Notes: '+(o.note||'None'),'',o.demo?'This is a test order.':'Please confirm the final total, collection or delivery time and bank details. I understand preparation starts after payment has been received and verified.',o.deliveryFeePending?'Please confirm the delivery fee for my address.':''].filter(line=>line!==undefined).join('\n');
+ }
+
  return 'Merhaba Pink Rose, sipariş bilgilerim aşağıdaki gibidir.\n\n'+orderSummary(o)+'\n'+(!o.date?'Zaman tercihi: Belirtilmedi\n':'')+(!o.note?'Not: Yok\n':'')+'\n'+(o.demo?'Bu bir deneme siparişidir.':'Kesin toplamı, teslim zamanını ve ödeme için IBAN bilgilerini öğrenmek istiyorum. Ödeme kontrolünden sonra hazırlığa başlanacağını biliyorum.')+(o.deliveryFeePending?' Teslimat ücretini adresime göre netleştirelim.':'');
 }
 
@@ -39,5 +44,6 @@ export function paymentWhatsApp(o:Order,paymentUrl:string):string|null{
  try{if(new URL(paymentUrl).protocol!=='https:')return null;}catch{return null;}
  const chat=customerWhatsApp(o);if(!chat)return null;
  const message=['Merhaba '+o.customer+', Pink Rose Cafe’den yazıyoruz.','Siparişiniz: '+o.number,...o.items.map(p=>p.qty+' × '+p.name),'Teslimat: '+o.type+(o.city?' · '+o.city:''),o.date?'Tarih / saat tercihiniz: '+o.date:'Teslim gününü ve saatini birlikte netleştirelim.','Kesin toplam: '+money(o.total)+(o.type==='Teslimat'?' (teslimat dahil)':' (gel-al ücretsiz)'),'Ödeme bilgileri: '+paymentUrl,'Havale/EFT açıklamasına '+o.number+' yazın. Ödemeniz hesabımıza ulaşıp kontrol edildikten sonra siparişiniz kesinleşir ve hazırlığa alınır.'].join('\n');
- const url=new URL(chat);url.searchParams.set('text',message);return url.toString();
+ const englishMessage=['Hello '+o.customer+', this is Pink Rose Cafe.','Your order: '+o.number,...o.items.map(p=>p.qty+' × '+p.name),'Fulfilment: '+(o.type==='Gel-al'?'Collection':'Delivery'+(o.city?' · '+o.city:'')),o.date?'Preferred date/time: '+o.date:'Let’s confirm the date and time together.','Final total: '+new Intl.NumberFormat('en-GB',{style:'currency',currency:'TRY'}).format(o.total/100)+(o.type==='Teslimat'?' (delivery included)':' (free collection)'),'Bank details: '+paymentUrl,'Include '+o.number+' in your bank transfer reference. Your order is confirmed and preparation begins after we have received and verified your payment.'].join('\n');
+ const url=new URL(chat);url.searchParams.set('text',o.language==='en'?englishMessage:message);return url.toString();
 }

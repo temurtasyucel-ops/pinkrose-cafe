@@ -88,6 +88,13 @@ try:
  status,excluded=call('/api/orders',seasonal_body);assert status==200 and excluded['total']==128000,(status,excluded)
  records['cookie-1']['data']['active']=False
  assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==400
+ english_key=str(uuid.uuid4())
+ english_body={**body,'key':english_key,'language':'en','type':'Teslimat','city':'İzmir','address':'Example street 10','items':[{'id':'cookie-2','qty':2}]}
+ status,en=call('/api/orders',english_body)
+ assert status==200 and orders[english_key]['data']['language']=='en',(status,en)
+ assert all(x in en['whatsappMessage'] for x in ['Hello Pink Rose','2 × Aşk Dediğin','Address: Example street 10','delivery excluded','bank details'])
+ assert call('/api/orders',{**english_body,'language':'tr'})[1]==en
+ print('PASS: English orders persist their language and full WhatsApp details; retry keeps the original order.')
  print('PASS: paused live/demo requests, no insert while paused, previous retry, reopening, live/demo mode, retry after mode switch, inactive product rejection, catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')
 finally:
  p.terminate(); p.wait(timeout=10); mock.shutdown(); log.close()

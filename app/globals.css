@@ -118,6 +118,17 @@ html{scroll-behavior:smooth;scroll-padding-top:110px}body{margin:0;color:#a80000
 
 .order-pause{margin:20px auto;max-width:1200px;width:calc(100% - 32px)}
 
+.header-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.language-switch{display:flex;border:1px solid #a8000040;border-radius:22px;overflow:hidden}
+.language-switch button{min-width:42px;min-height:44px;padding:8px;background:transparent;font-size:12px;font-weight:600}
+.language-switch button[aria-pressed=true]{background:#a80000;color:white}
+.english-fields{border:1px solid #ecc3d2;border-radius:8px;padding:14px}
+.english-fields summary{cursor:pointer;font-weight:600;min-height:32px}
+.english-fields[open]{display:grid;gap:16px}
+.english-fields label{margin-top:12px}
+@media(max-width:700px){.header-actions{gap:8px}.site-header{padding-inline:5%;gap:8px}.language-switch button{min-width:34px}.cart-button{gap:6px;padding:9px}.wordmark{font-size:28px}}
+@media(max-width:360px){.wordmark{font-size:25px}.header-actions{gap:5px}.language-switch button{min-width:30px}}
+
 /* Keep intentional headline breaks at every width; hidden breaks joined words. */
 @media (min-width:701px) and (max-width:1000px){
   .hero h1{font-size:clamp(38px,5.4vw,54px)}

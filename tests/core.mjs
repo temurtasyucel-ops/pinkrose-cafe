@@ -84,3 +84,15 @@ for(const status of ['Ödeme alındı','Hazırlanıyor','Teslim edildi','İptal'
 assert.equal(paymentWhatsApp(bankOrder,'javascript:alert(1)'),null);
 assert.equal(paymentWhatsApp({...bankOrder,phone:'invalid'},bankPage),null);
 console.log('PASS: payment message includes confirmed total and link; pending fees, demo, paid/cancelled orders and invalid links blocked.');
+
+const enOrder={...bankOrder,language:'en',customer:'Alex',address:'Example street 10',note:'Gift',date:'Saturday 15:00'};
+const enSummary=customerOrderMessage(enOrder);
+for(const field of ['Customer: Alex','2 × Gülpembe','Address: Example street 10','Saturday 15:00','Notes: Gift','bank details','payment has been received and verified'])assert.ok(enSummary.includes(field),field);
+assert.ok(!enSummary.includes('Sipariş talebi'));
+assert.ok(customerOrderMessage({...enOrder,deliveryFeePending:true}).includes('delivery excluded'));
+assert.ok(customerOrderMessage({...enOrder,type:'Gel-al',deliveryFeePending:false}).includes('Free collection'));
+assert.ok(!customerOrderMessage({...enOrder,type:'Gel-al'}).includes('Address:'));
+assert.ok(new URL(paymentWhatsApp(enOrder,bankPage)).searchParams.get('text').includes('Bank details: '+bankPage));
+assert.ok(new URL(customerWhatsApp(enOrder)).searchParams.get('text').startsWith('Hello Alex'));
+assert.equal(paymentWhatsApp({...enOrder,deliveryFeePending:true},bankPage),null);
+console.log('PASS: English order summaries, customer messages and payment messages preserve items, fees and bank-transfer workflow.');
