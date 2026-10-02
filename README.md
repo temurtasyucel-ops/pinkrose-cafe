@@ -54,3 +54,7 @@ Ayarlar bölümündeki gel-al adresi, saatleri ve HTTPS harita bağlantısı ist
 Sepette yalnızca ürün kimliği ve adetler bu tarayıcıda saklanır; müşteri bilgileri kaydedilmez. Katalog yenilendiğinde satışa kapalı veya tükenen ürünler sepetten çıkarılır. Aynı sipariş isteğini yeniden denemek aynı anahtarı kullanır; form veya sepet değişirse yeni anahtar oluşturulur. Kutu indirimi farklı tekli fiyatları ve tadım setini birlikte dikkate alır.
 
 Sipariş sekmesi görünürken liste 30 saniyede bir yenilenir. Bu yenileme kaydedilmemiş ayar değişikliklerinin üzerine yazmaz. Panel arama motorlarına kapalıdır; ana sayfa için site haritası ve paylaşım bilgileri tanımlıdır.
+
+Ayarlar → Yeni sipariş alımını geçici durdur seçeneği, canlı ve deneme taleplerini sunucuda engeller. Mevcut bir isteğin aynı anahtarla yeniden denenmesi önceki sonucu döndürür. Mola mesajı menü üzerinde gösterilir. Alanların eski kayıtlarda bulunmaması sipariş alımını açık tutar; SQL geçişi gerekmez.
+
+Panelde ürün/kampanya penceresini kapatma, sekme değiştirme, çıkış ve sayfa yenileme sırasında kaydedilmemiş düzenlemeler için uyarı gösterilir. Tarayıcının sayfa kapatma uyarısı kendi standart metnini kullanır.

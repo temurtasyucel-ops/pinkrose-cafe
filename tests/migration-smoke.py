@@ -58,8 +58,18 @@ try:
  assert status==200 and live['demo'] is False and orders[live_key]['data']['demo'] is False,(status,live)
  records['settings']['data']['demo']=True
  assert call('/api/orders',{**body,'key':live_key})[1]==live
+ records['settings']['data']['ordersPaused']=True
+ records['settings']['data']['pauseMessage']='Bugün kapasitemiz doldu.'
+ before=len(orders)
+ status,paused=call('/api/orders',{**body,'key':str(uuid.uuid4())})
+ assert status==409 and paused['error']=='Bugün kapasitemiz doldu.' and len(orders)==before,(status,paused)
+ assert call('/api/orders',{**body,'key':live_key})[1]==live
+ records['settings']['data']['demo']=False
+ assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==409
+ records['settings']['data']['ordersPaused']=False
+ assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==200
  records['cookie-1']['data']['active']=False
  assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==400
- print('PASS: live/demo mode, retry after mode switch, inactive product rejection, catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')
+ print('PASS: paused live/demo requests, no insert while paused, previous retry, reopening, live/demo mode, retry after mode switch, inactive product rejection, catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')
 finally:
  p.terminate(); p.wait(timeout=10); mock.shutdown(); log.close()
