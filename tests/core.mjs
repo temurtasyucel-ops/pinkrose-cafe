@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {cleanCart,submissionKey} from '../lib/cart.ts';
 import {priceBasket,tastingSelection} from '../lib/pricing.ts';
-import {deliveryQuote,filterOrders,customerWhatsApp} from '../lib/types.ts';
+import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary} from '../lib/types.ts';
 import {readJson} from '../lib/http.ts';
 assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
 assert.deepEqual(cleanCart(null),{});
@@ -56,3 +56,15 @@ assert.equal(tastingSelection({...seasonal,tastingIds:Array(7).fill(pumpkin)}).a
 assert.equal(priceBasket({...seasonal,tastingIds:Array(7).fill(pumpkin)},seasonalBasket).packageDiscount,6000);
 assert.equal(priceBasket({...expanded,products:expanded.products.map(p=>p.id===pumpkin?{...p,boxEligible:false}:p)},[{id:pumpkin,qty:8,price:16000}]).packageDiscount,0);
 console.log('PASS: 8/9/10 items, new varieties, seasonal replacement, invalid/unavailable tasting and excluded products.');
+
+const summary=orderSummary({...o,items:[{id:'cookie-1',name:'Gülpembe',price:16000,qty:2}],address:'Test adresi',date:'Cumartesi',note:'Hediye'});
+assert.ok(summary.includes('Teslimat hariç ürün toplamı:'));
+assert.ok(summary.includes('Ücret henüz belirlenmedi'));
+assert.ok(summary.includes('2 × Gülpembe'));
+assert.ok(!orderSummary({...o,type:'Gel-al',deliveryFeePending:false,items:[],address:'Eski adres'}).includes('Eski adres'));
+const {productCare,defaultPreparation,defaultStorage,defaultHeating}=await import('../lib/care.ts');
+assert.ok(defaultPreparation.includes('2–3 gün'));
+assert.deepEqual(productCare({category:'Kurabiyeler'},{}),{storage:defaultStorage,heating:defaultHeating});
+assert.deepEqual(productCare({category:'Kurabiyeler',storageInfo:'Soğuk tutun',heatingInfo:'Isıtmayın'},{}),{storage:'Soğuk tutun',heating:'Isıtmayın'});
+assert.deepEqual(productCare({category:'Sandviç'},{}),{storage:'',heating:''});
+console.log('PASS: pending delivery summary, pickup privacy, care defaults and product overrides.');

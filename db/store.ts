@@ -19,7 +19,7 @@ export async function catalog(all=false):Promise<Catalog>{
   const rows=data || [];
   const record=(id:string)=>rows.find(r=>r.id===id)?.data;
   const products=rows.filter(r=>r.kind==='product').map(r=>r.data as Product).filter(p=>all || p.active).sort((a,b)=>a.sort-b.sort);
-  return {...record('packages'),products,categories:record('categories'),settings:record('settings'),campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
+  return {...record('packages'),products,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
 }
 export async function put(id:string,kind:string,data:unknown){
   const {error}=await service().from('records').upsert({id,kind,data},{onConflict:'id'});check(error);

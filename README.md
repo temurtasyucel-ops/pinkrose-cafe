@@ -64,3 +64,11 @@ Panelde ürün/kampanya penceresini kapatma, sekme değiştirme, çıkış ve sa
 Ürünlerde Kutu paketlerine dahil seçeneği, kimliğine veya menüdeki sıra sayısına bakılmadan kutu hesabına katılımı belirler. Eski yedi üründe bu alan yoksa dahil kabul edilir. Yeni ürün formunda varsayılan açık gelir; farklı ürün gruplarında kapatılabilir.
 
 Tanışma paketinin yedi benzersiz çeşidi Paketler sekmesinden seçilir. Menüye sekizinci veya dokuzuncu ürün eklenmesi bu seçimi ve fiyatı değiştirmez. Seçili bir ürün görünmez, tükenmiş veya kutu dışında ise tanışma paketi alınamaz ve tanışma indirimi uygulanmaz. Yedi çeşitten oluşan tam set ve kalan adetler için uygun kutu kombinasyonu birlikte hesaplanır. Seçim bulunmayan eski kayıtlarda orijinal yedi çeşit kullanılır. SQL geçişi gerekmez.
+
+## Ön sipariş ve ürün bakımı
+
+Varsayılan bilgi: siparişleri teslim tarihinden 2–3 gün önce verin. Ana sayfada ve sipariş formunda gösterilir; tarih/saat tercihi WhatsApp üzerinden kesinleştirilir. Ayarlar bölümünden metni düzenleyebilirsiniz. Genel kurabiye saklama ve ısıtma metinleri de burada bulunur. Üründeki özel metinler genel metinlerin yerine geçer; başka kategorilere kurabiye talimatı otomatik uygulanmaz. Eski ayarlara eksik alanların varsayılanları sunucuda eklenir; kayıtlar ve mevcut düzenlemeler üzerine yazılmaz.
+
+Isıtma metni kısa, kontrollü ılıtma için başlangıç talimatıdır; ürünün gramajı, dolgusu ve fırın davranışıyla kontrol edilmelidir. Başka üreticinin raf ömrü Pink Rose ürünlerine aktarılmamıştır. Krema gibi soğuk saklama gerektiren dolgular için ürünün tarifine uygun özel talimat ve tüketim tarihi kullanılır. Araştırma: https://levainbakery.com/pages/faq ve https://www.fda.gov/food/people-risk-foodborne-illness/holiday-goodies-food-safety-moms-be
+
+Sipariş detayında Sipariş özetini kopyala düğmesi müşteri, ürünler ve tutarları kopyalar. Teslimat ücreti bekleniyorsa toplam açıkça teslimat hariç gösterilir. Tarayıcı panoya izin vermezse seçilebilir metin alanı açılır.

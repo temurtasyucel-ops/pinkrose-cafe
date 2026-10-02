@@ -37,6 +37,7 @@ try:
   try:
    if call('/')[0]==200: break
   except Exception: time.sleep(.1)
+ assert '2–3 gün'.encode() in call('/')[1]
  assert call('/panel/login')[0]==200
  assert b'noindex' in call('/panel/login')[1]
  assert b'https://www.pinkrosecafe.com.tr' in call('/sitemap.xml')[1]
@@ -45,6 +46,10 @@ try:
  assert call('/api/admin')[0]==401
  assert call('/api/upload',{})[0]==401
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==7,(status,c)
+ assert '2–3 gün' in c['settings']['preparationText']
+ assert '170°C' in c['settings']['heatingInfo']
+ records['settings']['data']['preparationText']='Özel hazırlık süresi'
+ assert call('/api/catalog')[1]['settings']['preparationText']=='Özel hazırlık süresi'
  key=str(uuid.uuid4()); body={'key':key,'customer':'Test Customer','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-1','qty':2,'price':1}]}
  status,o=call('/api/orders',body); assert status==200 and o['total']==30000 and o['demo'] is True,(status,o)
  status,again=call('/api/orders',{**body,'items':[{'id':'cookie-1','qty':8}]}); assert again==o and len(orders)==1,(status,again)

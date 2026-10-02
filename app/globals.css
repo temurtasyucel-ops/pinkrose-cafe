@@ -117,3 +117,5 @@ html{scroll-behavior:smooth;scroll-padding-top:110px}body{margin:0;color:#a80000
 @media(max-width:420px){.cart-sheet{max-width:100vw}.detail-photos{gap:8px}.admin-tabs{width:100%}.stats span{overflow-wrap:anywhere}}
 
 .order-pause{margin:20px auto;max-width:1200px;width:calc(100% - 32px)}
+
+.preparation-notice{display:flex;align-items:center;gap:12px;max-width:1200px;margin:20px auto;width:calc(100% - 32px)}.preparation-notice svg{flex-shrink:0}.cookie-care{border-top:1px solid #ffb3d1;margin-top:18px;padding-top:12px}.cookie-care p{font-size:14px;line-height:1.6}.copy-summary{display:block;width:100%;min-height:250px;margin-top:10px;white-space:pre-wrap}
