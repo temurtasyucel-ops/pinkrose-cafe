@@ -118,6 +118,39 @@ html{scroll-behavior:smooth;scroll-padding-top:110px}body{margin:0;color:#a80000
 
 .order-pause{margin:20px auto;max-width:1200px;width:calc(100% - 32px)}
 
+/* Keep intentional headline breaks at every width; hidden breaks joined words. */
+@media (min-width:701px) and (max-width:1000px){
+  .hero h1{font-size:clamp(38px,5.4vw,54px)}
+}
+@media (max-width:900px){
+  .site-header nav{display:none}
+}
+@media (max-width:700px){
+  .hero h1{font-size:clamp(36px,9.8vw,66px);line-height:1.12;max-width:100%}
+  .hero h1 br:nth-of-type(2),.story-label br{display:initial}
+  .story-label i{margin-left:0}
+  .hero-copy,.story>div,.delivery>div,.package-card{min-width:0}
+  .section-heading h2{font-size:clamp(30px,8.5vw,39px)}
+  .campaign-strip{flex-wrap:wrap}
+  .campaign-strip>b{font-size:36px;white-space:normal;overflow-wrap:anywhere}
+  .product h3,.package-card h3,.delivery p,.footer-contact{overflow-wrap:anywhere}
+  .add-button{min-height:44px;max-width:100%;flex-wrap:wrap}
+  .filters button{min-height:44px}
+  .product-gallery .gallery-arrow{width:44px;height:44px}
+  .product-gallery .gallery-dots button{min-width:30px;min-height:44px}
+  .gallery-indicator{flex-wrap:wrap}
+  .product-gallery .gallery-hint{font-size:12px;flex-wrap:wrap}
+  .badge{max-width:calc(100% - 14px);white-space:normal}
+  .preparation-notice{align-items:flex-start;padding:12px 14px}
+  .preparation-notice svg{margin-top:3px}
+  .dialog-bottom{gap:12px;flex-wrap:wrap}
+}
+@media (max-width:360px){
+  .product-grid{grid-template-columns:minmax(0,1fr)}
+  .product-bottom{flex-direction:row;align-items:center}
+  .footer-top{flex-direction:column}
+}
+
 .preparation-notice{display:flex;align-items:center;gap:12px;max-width:1200px;margin:20px auto;width:calc(100% - 32px)}.preparation-notice svg{flex-shrink:0}.cookie-care{border-top:1px solid #ffb3d1;margin-top:18px;padding-top:12px}.cookie-care p{font-size:14px;line-height:1.6}.copy-summary{display:block;width:100%;min-height:250px;margin-top:10px;white-space:pre-wrap}
 
 .payment-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding-left:24px;margin:28px 0}.payment-steps li{padding:8px}.payment-steps b,.payment-steps span{display:block}.payment-steps span{font-size:14px;line-height:1.6;margin-top:8px}.payment-section>p{font-size:14px;line-height:1.7;max-width:950px}@media(max-width:700px){.payment-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:420px){.payment-steps{grid-template-columns:1fr;gap:8px}}
