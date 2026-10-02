@@ -1,6 +1,6 @@
 export type Product={id:string;name:string;category:string;description:string;ingredients:string;allergens:string;price:number;oldPrice:number;image:string;insideImage?:string;weight?:string;active:boolean;stock:boolean;featured:boolean;boxEligible?:boolean;storageInfo?:string;heatingInfo?:string;sort:number};
 export type Campaign={id:string;title:string;text:string;discount:number;start:string;end:string;active:boolean};
-export type Settings={whatsapp:string;instagram:string;deliveryText:string;deliveryFee:number;deliveryQuoted?:boolean;pickupAddress?:string;pickupHours?:string;pickupMapUrl?:string;ordersPaused?:boolean;pauseMessage?:string;paymentText?:string;preparationText?:string;storageInfo?:string;heatingInfo?:string;demo:boolean};
+export type Settings={whatsapp:string;instagram:string;deliveryText:string;deliveryFee:number;deliveryQuoted?:boolean;pickupAddress?:string;pickupHours?:string;pickupMapUrl?:string;ordersPaused?:boolean;pauseMessage?:string;paymentUrl?:string;paymentText?:string;preparationText?:string;storageInfo?:string;heatingInfo?:string;demo:boolean};
 export type Catalog={products:Product[];categories:string[];campaigns:Campaign[];settings:Settings;packages:{qty:number;name:string;price:number}[];tastingPrice:number;tastingIds?:string[]};
 export type Order={id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
 export const money=(c:number)=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(c/100);
@@ -32,4 +32,12 @@ export function orderSummary(o:Order){
 
 export function customerOrderMessage(o:Order){
  return 'Merhaba Pink Rose, sipariş bilgilerim aşağıdaki gibidir.\n\n'+orderSummary(o)+'\n'+(!o.date?'Zaman tercihi: Belirtilmedi\n':'')+(!o.note?'Not: Yok\n':'')+'\n'+(o.demo?'Bu bir deneme siparişidir.':'Kesin toplamı, teslim zamanını ve ödeme için IBAN bilgilerini öğrenmek istiyorum. Ödeme kontrolünden sonra hazırlığa başlanacağını biliyorum.')+(o.deliveryFeePending?' Teslimat ücretini adresime göre netleştirelim.':'');
+}
+
+export function paymentWhatsApp(o:Order,paymentUrl:string):string|null{
+ if(o.demo||o.deliveryFeePending||['Ödeme alındı','Hazırlanıyor','Teslim edildi','İptal'].includes(orderStatus(o.status)))return null;
+ try{if(new URL(paymentUrl).protocol!=='https:')return null;}catch{return null;}
+ const chat=customerWhatsApp(o);if(!chat)return null;
+ const message=['Merhaba '+o.customer+', Pink Rose Cafe’den yazıyoruz.','Siparişiniz: '+o.number,...o.items.map(p=>p.qty+' × '+p.name),'Teslimat: '+o.type+(o.city?' · '+o.city:''),o.date?'Tarih / saat tercihiniz: '+o.date:'Teslim gününü ve saatini birlikte netleştirelim.','Kesin toplam: '+money(o.total)+(o.type==='Teslimat'?' (teslimat dahil)':' (gel-al ücretsiz)'),'Ödeme bilgileri: '+paymentUrl,'Havale/EFT açıklamasına '+o.number+' yazın. Ödemeniz hesabımıza ulaşıp kontrol edildikten sonra siparişiniz kesinleşir ve hazırlığa alınır.'].join('\n');
+ const url=new URL(chat);url.searchParams.set('text',message);return url.toString();
 }

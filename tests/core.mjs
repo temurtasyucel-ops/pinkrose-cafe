@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {cleanCart,submissionKey} from '../lib/cart.ts';
 import {priceBasket,tastingSelection} from '../lib/pricing.ts';
-import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary,customerOrderMessage} from '../lib/types.ts';
+import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary,customerOrderMessage,paymentWhatsApp} from '../lib/types.ts';
 import {readJson} from '../lib/http.ts';
 assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
 assert.deepEqual(cleanCart(null),{});
@@ -73,3 +73,14 @@ const message=customerOrderMessage({...o,number:'PR-MESSAGE',items:[{id:'cookie-
 for(const detail of ['PR-MESSAGE','2 × Gülpembe','Pazar 15.00','Test sokak 5','Hediye kutusu','Telefon:','Ara toplam:','İndirim:','Teslimat hariç ürün toplamı:'])assert.ok(message.includes(detail),detail);
 assert.ok(!customerOrderMessage({...o,demo:true,items:[]}).includes('IBAN'));
 console.log('PASS: complete customer WhatsApp message and demo distinction.');
+
+const bankPage='https://dokunuver.com.tr/i/6FU5V2';
+assert.equal(paymentWhatsApp({...o,items:[]},bankPage),null);
+const bankOrder={...o,number:'PR-BANK',status:'Ödeme bekleniyor',deliveryFeePending:false,deliveryFee:5000,total:35000,items:[{id:'cookie-1',name:'Gülpembe',qty:2,price:16000}],date:'Pazar 15.00'};
+const bankMessage=new URL(paymentWhatsApp(bankOrder,bankPage)).searchParams.get('text');
+for(const detail of [bankPage,'PR-BANK','2 × Gülpembe','Pazar 15.00','350','teslimat dahil'])assert.ok(bankMessage.includes(detail),detail);
+assert.equal(paymentWhatsApp({...bankOrder,demo:true},bankPage),null);
+for(const status of ['Ödeme alındı','Hazırlanıyor','Teslim edildi','İptal'])assert.equal(paymentWhatsApp({...bankOrder,status},bankPage),null);
+assert.equal(paymentWhatsApp(bankOrder,'javascript:alert(1)'),null);
+assert.equal(paymentWhatsApp({...bankOrder,phone:'invalid'},bankPage),null);
+console.log('PASS: payment message includes confirmed total and link; pending fees, demo, paid/cancelled orders and invalid links blocked.');

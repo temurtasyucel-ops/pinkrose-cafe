@@ -1,1 +1,2 @@
 export const defaultPaymentText='Sipariş talebinizin ardından ürünleri, teslim tarihini ve varsa teslimat ücretini WhatsApp üzerinden netleştiriyoruz. Kesin toplam ve IBAN bilgilerini size iletiyoruz. Ödemenizi havale/EFT ile yaparken açıklamaya sipariş numaranızı yazın. Ödeme hesabımıza ulaşıp tarafımızca kontrol edildikten sonra siparişiniz kesinleşir ve hazırlığa alınır. Lütfen tutar ve hesap bilgileri tarafımızca paylaşılmadan ödeme yapmayın.';
+export const defaultPaymentUrl='https://dokunuver.com.tr/i/6FU5V2';
