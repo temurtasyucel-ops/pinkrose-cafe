@@ -30,4 +30,4 @@ npm run dev
 
 Bu depo taşıma sürümüdür. Supabase projesi/anahtarları, yönetici kullanıcısı ve Vercel yayını tamamlanmadan canlı bağlantı hazır değildir. Mevcut Sites veritabanındaki son panel değişiklikleri, yüklenen görseller ve sipariş kayıtları gerekiyorsa ayrıca aktarılmalıdır. Depodaki ürün görselleri orijinal site dosyalarından alınmıştır.
 
-Siparişler mevcut sürümde deneme modundadır; gerçek ödeme alınmaz. Canlı sipariş açılışı ayrıca yapılmalıdır.
+Başlangıçta deneme modu açıktır. Panel → Ayarlar → Canlı sipariş taleplerini aç seçeneğini etkinleştirip kaydedin. Canlı talepler panele kaydedilir ve müşteriye WhatsApp onay bağlantısı gösterilir. Çevrim içi ödeme alınmaz. Manisa/İzmir teslimat ücreti adres üzerinden ayrıca onaylanır. Eski deneme siparişleri etiketlenir ve canlı istatistiklere dahil edilmez.

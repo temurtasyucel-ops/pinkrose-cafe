@@ -42,12 +42,20 @@ try:
  assert call('/api/upload',{})[0]==400
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==7,(status,c)
  key=str(uuid.uuid4()); body={'key':key,'customer':'Test Customer','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-1','qty':2,'price':1}]}
- status,o=call('/api/orders',body); assert status==200 and o['total']==30000,(status,o)
+ status,o=call('/api/orders',body); assert status==200 and o['total']==30000 and o['demo'] is True,(status,o)
  status,again=call('/api/orders',{**body,'items':[{'id':'cookie-1','qty':8}]}); assert again==o and len(orders)==1,(status,again)
  status,o=call('/api/orders',{**body,'key':str(uuid.uuid4()),'type':'Teslimat','city':'İzmir','address':'Test delivery address'}); assert status==200 and o['deliveryFeePending'] and o['total']==30000,(status,o)
  assert call('/api/orders',{**body,'key':str(uuid.uuid4()),'type':'Teslimat','city':'Ankara','address':'Test delivery address'})[0]==400
  assert call('/api/orders',body,origin='https://other.example')[0]==400
  assert call('/api/images/invalid')[0]==404
- print('PASS: catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')
+ records['settings']['data']['demo']=False
+ live_key=str(uuid.uuid4())
+ status,live=call('/api/orders',{**body,'key':live_key})
+ assert status==200 and live['demo'] is False and orders[live_key]['data']['demo'] is False,(status,live)
+ records['settings']['data']['demo']=True
+ assert call('/api/orders',{**body,'key':live_key})[1]==live
+ records['cookie-1']['data']['active']=False
+ assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==400
+ print('PASS: live/demo mode, retry after mode switch, inactive product rejection, catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')
 finally:
  p.terminate(); p.wait(timeout=10); mock.shutdown(); log.close()
