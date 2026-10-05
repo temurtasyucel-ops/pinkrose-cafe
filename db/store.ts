@@ -1,5 +1,6 @@
 import {service} from '@/lib/supabase/service';
 import {orderStatus,deliveryQuote} from '@/lib/types';
+import {defaultBulkPricing,validBulkPricing} from '@/lib/pricing';
 import {seed} from '@/lib/seed';
 import type {Catalog,Order,Product,Campaign} from '@/lib/types';
 
@@ -8,7 +9,7 @@ export async function initialize(){
   const rows=[
     {id:'settings',kind:'settings',data:seed.settings},
     {id:'categories',kind:'categories',data:seed.categories},
-    {id:'packages',kind:'packages',data:{packages:seed.packages}},
+    {id:'packages',kind:'packages',data:{packages:seed.packages,bulkPricing:seed.bulkPricing}},
     ...seed.products.map(p=>({id:p.id,kind:'product',data:p}))
   ];
   const {error}=await service().from('records').upsert(rows,{onConflict:'id',ignoreDuplicates:true});check(error);
@@ -20,8 +21,9 @@ export async function catalog(all=false):Promise<Catalog>{
   const record=(id:string)=>rows.find(r=>r.id===id)?.data;
   const products=rows.filter(r=>r.kind==='product').map(r=>r.data as Product).filter(p=>all || p.active).sort((a,b)=>a.sort-b.sort);
   const packageRecord=record('packages');
-  const packageData={packages:packageRecord.packages};
-  if(Object.keys(packageRecord).some(key=>key!=='packages')){
+  const bulkPricing=validBulkPricing(packageRecord.bulkPricing)?packageRecord.bulkPricing:defaultBulkPricing;
+  const packageData={packages:packageRecord.packages.map((p:Catalog['packages'][number])=>({...p,price:p.qty*bulkPricing.unitPrice})),bulkPricing};
+  if(JSON.stringify(packageRecord)!==JSON.stringify(packageData)){
     const {error:cleanupError}=await service().from('records').update({data:packageData}).eq('id','packages').eq('data',JSON.stringify(packageRecord));
     check(cleanupError);
   }

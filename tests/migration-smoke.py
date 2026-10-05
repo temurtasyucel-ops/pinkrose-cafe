@@ -55,10 +55,14 @@ try:
  records['packages']['data']['tastingPrice']=1
  records['packages']['data']['tastingIds']=['cookie-'+str(i) for i in range(1,8)]
  status,cleaned=call('/api/catalog')
- assert status==200 and set(records['packages']['data'])=={'packages'} and 'tastingPrice' not in cleaned
- assert [p['price'] for p in cleaned['packages']]==[30000,60000,90000,110000]
+ assert status==200 and set(records['packages']['data'])=={'packages','bulkPricing'} and 'tastingPrice' not in cleaned
+ assert [p['price'] for p in cleaned['packages']]==[30000,60000,90000,120000]
  seven_body={'key':str(uuid.uuid4()),'customer':'Box Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-'+str(i),'qty':1} for i in range(1,8)]}
- status,seven=call('/api/orders',seven_body);assert status==200 and seven['total']==106000,(status,seven)
+ status,seven=call('/api/orders',seven_body);assert status==200 and seven['total']==105000,(status,seven)
+ records['packages']['data']['bulkPricing']={'minQty':3,'unitPrice':14000}
+ assert call('/api/orders',{**seven_body,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':2}]})[1]['total']==34000
+ assert call('/api/orders',{**seven_body,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':3}]})[1]['total']==42000
+ records['packages']['data']['bulkPricing']={'minQty':2,'unitPrice':15000}
  orders.clear()
  assert '170°C' in c['settings']['heatingInfo']
  records['settings']['data']['preparationText']='Özel hazırlık süresi'
@@ -90,14 +94,14 @@ try:
  pumpkin=str(uuid.uuid4())
  records[pumpkin]={'id':pumpkin,'kind':'product','data':{**records['cookie-3']['data'],'id':pumpkin,'name':'Bal Kabaklı','boxEligible':True}}
  seasonal_body={**body,'key':str(uuid.uuid4()),'items':[{'id':pumpkin,'qty':9}]}
- status,nine=call('/api/orders',seasonal_body);assert status==200 and nine['total']==126000,(status,nine)
+ status,nine=call('/api/orders',seasonal_body);assert status==200 and nine['total']==135000,(status,nine)
  records['cookie-3']['data']['active']=False
  seasonal_body['items']=[{'id':id,'qty':1} for id in ['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7']]
  seasonal_body['key']=str(uuid.uuid4())
- status,seasonal=call('/api/orders',seasonal_body);assert status==200 and seasonal['total']==106000,(status,seasonal)
+ status,seasonal=call('/api/orders',seasonal_body);assert status==200 and seasonal['total']==105000,(status,seasonal)
  records[pumpkin]['data']['boxEligible']=False
  seasonal_body['key']=str(uuid.uuid4());seasonal_body['items']=[{'id':pumpkin,'qty':8}]
- status,excluded=call('/api/orders',seasonal_body);assert status==200 and excluded['total']==128000,(status,excluded)
+ status,excluded=call('/api/orders',seasonal_body);assert status==200 and excluded['total']==136000,(status,excluded)
  records['cookie-1']['data']['active']=False
  assert call('/api/orders',{**body,'key':str(uuid.uuid4())})[0]==400
  english_key=str(uuid.uuid4())

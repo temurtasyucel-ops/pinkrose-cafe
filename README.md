@@ -63,7 +63,7 @@ Panelde ürün/kampanya penceresini kapatma, sekme değiştirme, çıkış ve sa
 
 Ürünlerde Kutu paketlerine dahil seçeneği, kimliğine veya menüdeki sıra sayısına bakılmadan kutu hesabına katılımı belirler. Eski yedi üründe bu alan yoksa dahil kabul edilir. Yeni ürün formunda varsayılan açık gelir; farklı ürün gruplarında kapatılabilir.
 
-Kutu fiyatı, kutuya dahil ürünlerin toplam adedine göre 2’li, 4’lü, 6’lı ve 8’li kutular ile kalan tekli ürünlerin en uygun birleşiminden hesaplanır. Çeşit sayısı ve sezonluk ürün değişimi fiyat mantığını değiştirmez. Eski paket kaydındaki kullanılmayan alanlar katalog okunurken mevcut kutu fiyatları korunarak temizlenir. Eski siparişlerin kayıtlı tutarları korunur; SQL geçişi gerekmez.
+Kutuya dahil ürünlerde panelden değiştirilen başlangıç adedi ve indirimli birim fiyat kullanılır (varsayılan: 2 adet ve üzeri, birim 150 TL). Tekli ürün fiyatları ürün kaydından gelir; indirim bir ürünü kendi fiyatından pahalı yapmaz. Kutu dışında kalan ürünler eşiğe dahil değildir. Kutu kartlarının fiyatları otomatik türetilir. Eski paket kayıtları ilk katalog okumasında bu varsayılanla güncellenir; sonraki ayarlar korunur. Önceden kaydedilen sipariş tutarları değişmez.
 
 ## Ön sipariş ve ürün bakımı
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {cleanCart,submissionKey} from '../lib/cart.ts';
-import {priceBasket} from '../lib/pricing.ts';
+import {priceBasket,validBulkPricing} from '../lib/pricing.ts';
 import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary,customerOrderMessage,paymentWhatsApp} from '../lib/types.ts';
 import {readJson} from '../lib/http.ts';
 assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
@@ -8,24 +8,19 @@ assert.deepEqual(cleanCart(null),{});
 const first=submissionKey(null,'basket1',()=> 'key1');
 assert.equal(submissionKey(first,'basket1',()=> 'key2').key,'key1');
 assert.equal(submissionKey(first,'basket2',()=> 'key2').key,'key2');
-const catalog={products:Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),active:true,stock:true})),packages:[{qty:2,price:30000},{qty:4,price:60000},{qty:6,price:90000},{qty:8,price:110000}]};
-assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:2,price:16000},{id:'cookie-2',qty:1,price:10000}]).packageDiscount,2000);
-assert.equal(priceBasket(catalog,Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),qty:1,price:16000}))).packageDiscount,6000);
-// Independent exhaustive allocation checks each possible box subset, not the pricing DP.
-function exhaustive(prices,boxes){
- const cache=new Map();
- function solve(mask){if(!mask)return 0;if(cache.has(mask))return cache.get(mask);
-  const first=prices.findIndex((_,i)=>mask&(1<<i));let best=prices[first]+solve(mask^(1<<first));
-  for(let subset=mask;subset;subset=(subset-1)&mask){if(!(subset&(1<<first)))continue;const size=subset.toString(2).replaceAll('0','').length;for(const box of boxes)if(box.qty===size)best=Math.min(best,box.price+solve(mask^subset));}
-  cache.set(mask,best);return best;
- }return solve((1<<prices.length)-1);
+const catalog={products:Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),active:true,stock:true})),packages:[],bulkPricing:{minQty:2,unitPrice:15000}};
+assert.equal(validBulkPricing(catalog.bulkPricing),true);
+for(const rule of [null,{}, {minQty:0,unitPrice:15000},{minQty:2.5,unitPrice:15000},{minQty:101,unitPrice:15000},{minQty:2,unitPrice:0},{minQty:2,unitPrice:15000.5},{minQty:2,unitPrice:10000001}])assert.equal(validBulkPricing(rule),false);
+for(let qty=1;qty<=20;qty++){
+ const r=priceBasket(catalog,[{id:'cookie-1',qty,price:17000}]);
+ assert.equal(r.subtotal-r.packageDiscount,qty===1?17000:qty*15000);
 }
-for(let k=0;k<20;k++){
- const prices=Array.from({length:6},(_,i)=>10000+((k*7+i*3)%10)*1000);
- const basket=prices.map((price,i)=>({id:'cookie-'+(i+1),qty:1,price}));
- const result=priceBasket(catalog,basket);
- assert.equal(result.subtotal-result.packageDiscount,exhaustive(prices,catalog.packages));
-}
+const mixed=[{id:'cookie-1',qty:1,price:17000},{id:'cookie-2',qty:2,price:17000},{id:'other',qty:2,price:20000}];
+const result=priceBasket(catalog,mixed);assert.equal(result.subtotal-result.packageDiscount,85000);
+assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:1,price:17000},{id:'other',qty:9,price:20000}]).packageDiscount,0);
+assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:2,price:10000}]).packageDiscount,0);
+assert.equal(priceBasket({...catalog,bulkPricing:{minQty:3,unitPrice:14000}},[{id:'cookie-1',qty:2,price:17000}]).packageDiscount,0);
+assert.equal(priceBasket({...catalog,bulkPricing:{minQty:3,unitPrice:14000}},[{id:'cookie-1',qty:3,price:17000}]).packageDiscount,9000);
 const o={number:'PR-TEST',customer:'İPEK ŞEN',phone:'05060584705',type:'Teslimat',subtotal:32000,discount:2000,total:30000,status:'Yeni',deliveryFee:0,deliveryFeePending:true,demo:false};
 const quoted=deliveryQuote(o,7500);assert.equal(quoted.total,37500);assert.equal(deliveryQuote(quoted,5000).total,35000);
 assert.equal(deliveryQuote(quoted,0).total,30000);assert.equal(quoted.deliveryFeePending,false);
@@ -37,22 +32,13 @@ assert.equal(filterOrders([o],'','Tümü','Deneme').length,0);
 for(const phone of ['0506 058 47 05','5060584705','+90 506 058 47 05'])assert.equal(new URL(customerWhatsApp({...o,phone})).pathname,'/905060584705');
 await assert.rejects(readJson(new Response('<html>',{status:500})),/İşlem tamamlanamadı/);
 await assert.rejects(readJson(Response.json({error:'Yetki yok'},{status:403})),/Yetki yok/);
-console.log('PASS: cart, retry keys, mixed-price boxes (20 exhaustive cases), quotes, filters, WhatsApp and HTTP errors.');
+console.log('PASS: cart, retry keys, pricing validation, quantity discounts, quotes, filters, WhatsApp and HTTP errors.');
 
-const pumpkin='11111111-1111-4111-8111-111111111111',ninth='22222222-2222-4222-8222-222222222222';
-const expanded={...catalog,products:[...catalog.products,{id:pumpkin,boxEligible:true,active:true,stock:true},{id:ninth,boxEligible:true,active:true,stock:true}]};
-for(const [qty,total] of [[8,110000],[9,126000],[10,140000]]){
- const priced=priceBasket(expanded,[{id:pumpkin,qty,price:16000}]);assert.equal(priced.subtotal-priced.packageDiscount,total);
-}
-const nine=expanded.products.map(p=>({id:p.id,qty:1,price:16000}));
-assert.equal(priceBasket(expanded,nine).subtotal-priceBasket(expanded,nine).packageDiscount,126000); // 8-box + single
-assert.equal(priceBasket({...expanded,products:expanded.products.map(p=>({...p,boxEligible:false}))},nine).packageDiscount,0);
-const seasonal={...expanded,products:expanded.products.map(p=>p.id==='cookie-3'?{...p,active:false}:p)};
-const seasonalBasket=['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7'].map(id=>({id,price:16000,qty:1}));
-assert.equal(priceBasket(seasonal,seasonalBasket).packageDiscount,6000);
-assert.equal(priceBasket({...expanded,products:expanded.products.map(p=>p.id===pumpkin?{...p,boxEligible:false}:p)},[{id:pumpkin,qty:8,price:16000}]).packageDiscount,0);
-console.log('PASS: 8/9/10 items, new varieties, seasonal replacement, seven-item box pricing and excluded products.');
-
+const pumpkin='11111111-1111-4111-8111-111111111111';
+const expanded={...catalog,products:[...catalog.products,{id:pumpkin,boxEligible:true,active:true,stock:true}]};
+assert.equal(priceBasket(expanded,[{id:pumpkin,qty:9,price:17000}]).packageDiscount,18000);
+assert.equal(priceBasket({...expanded,products:expanded.products.map(p=>({...p,boxEligible:false}))},mixed).packageDiscount,0);
+console.log('PASS: editable quantity pricing, 1–20 units, mixed varieties, new products, exclusions, threshold changes and cheaper products.');
 const summary=orderSummary({...o,items:[{id:'cookie-1',name:'Gülpembe',price:16000,qty:2}],address:'Test adresi',date:'Cumartesi',note:'Hediye'});
 assert.ok(summary.includes('Teslimat hariç ürün toplamı:'));
 assert.ok(summary.includes('Ücret henüz belirlenmedi'));
