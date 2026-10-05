@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {cleanCart,submissionKey} from '../lib/cart.ts';
-import {priceBasket,tastingSelection} from '../lib/pricing.ts';
+import {priceBasket} from '../lib/pricing.ts';
 import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary,customerOrderMessage,paymentWhatsApp} from '../lib/types.ts';
 import {readJson} from '../lib/http.ts';
 assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
@@ -8,9 +8,9 @@ assert.deepEqual(cleanCart(null),{});
 const first=submissionKey(null,'basket1',()=> 'key1');
 assert.equal(submissionKey(first,'basket1',()=> 'key2').key,'key1');
 assert.equal(submissionKey(first,'basket2',()=> 'key2').key,'key2');
-const catalog={products:Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),active:true,stock:true})),packages:[{qty:2,price:30000},{qty:4,price:60000},{qty:6,price:90000},{qty:8,price:110000}],tastingPrice:100000};
+const catalog={products:Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),active:true,stock:true})),packages:[{qty:2,price:30000},{qty:4,price:60000},{qty:6,price:90000},{qty:8,price:110000}]};
 assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:2,price:16000},{id:'cookie-2',qty:1,price:10000}]).packageDiscount,2000);
-assert.equal(priceBasket(catalog,Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),qty:1,price:16000}))).packageDiscount,12000);
+assert.equal(priceBasket(catalog,Array.from({length:7},(_,i)=>({id:'cookie-'+(i+1),qty:1,price:16000}))).packageDiscount,6000);
 // Independent exhaustive allocation checks each possible box subset, not the pricing DP.
 function exhaustive(prices,boxes){
  const cache=new Map();
@@ -45,17 +45,13 @@ for(const [qty,total] of [[8,110000],[9,126000],[10,140000]]){
  const priced=priceBasket(expanded,[{id:pumpkin,qty,price:16000}]);assert.equal(priced.subtotal-priced.packageDiscount,total);
 }
 const nine=expanded.products.map(p=>({id:p.id,qty:1,price:16000}));
-assert.equal(priceBasket(expanded,nine).subtotal-priceBasket(expanded,nine).packageDiscount,126000); // 8-box + single beats tasting 7 + remaining 2
+assert.equal(priceBasket(expanded,nine).subtotal-priceBasket(expanded,nine).packageDiscount,126000); // 8-box + single
 assert.equal(priceBasket({...expanded,products:expanded.products.map(p=>({...p,boxEligible:false}))},nine).packageDiscount,0);
-const seasonal={...expanded,tastingIds:['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7'],products:expanded.products.map(p=>p.id==='cookie-3'?{...p,active:false}:p)};
-const seasonalBasket=seasonal.tastingIds.map(id=>({id,price:16000,qty:1}));
-assert.equal(tastingSelection(seasonal).available,true);
-assert.equal(priceBasket(seasonal,seasonalBasket).packageDiscount,12000);
-assert.equal(tastingSelection({...seasonal,products:seasonal.products.map(p=>p.id===pumpkin?{...p,stock:false}:p)}).available,false);
-assert.equal(tastingSelection({...seasonal,tastingIds:Array(7).fill(pumpkin)}).available,false);
-assert.equal(priceBasket({...seasonal,tastingIds:Array(7).fill(pumpkin)},seasonalBasket).packageDiscount,6000);
+const seasonal={...expanded,products:expanded.products.map(p=>p.id==='cookie-3'?{...p,active:false}:p)};
+const seasonalBasket=['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7'].map(id=>({id,price:16000,qty:1}));
+assert.equal(priceBasket(seasonal,seasonalBasket).packageDiscount,6000);
 assert.equal(priceBasket({...expanded,products:expanded.products.map(p=>p.id===pumpkin?{...p,boxEligible:false}:p)},[{id:pumpkin,qty:8,price:16000}]).packageDiscount,0);
-console.log('PASS: 8/9/10 items, new varieties, seasonal replacement, invalid/unavailable tasting and excluded products.');
+console.log('PASS: 8/9/10 items, new varieties, seasonal replacement, seven-item box pricing and excluded products.');
 
 const summary=orderSummary({...o,items:[{id:'cookie-1',name:'Gülpembe',price:16000,qty:2}],address:'Test adresi',date:'Cumartesi',note:'Hediye'});
 assert.ok(summary.includes('Teslimat hariç ürün toplamı:'));

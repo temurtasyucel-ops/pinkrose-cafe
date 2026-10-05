@@ -4,6 +4,11 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 records, orders = {}, {}
 class Mock(BaseHTTPRequestHandler):
+ def do_PATCH(self):
+  data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+  query=parse_qs(urlparse(self.path).query); key=query['id'][0].removeprefix('eq.')
+  if key in records and records[key]['data']==json.loads(query['data'][0].removeprefix('eq.')): records[key].update(data)
+  self.out(None)
  def log_message(self, *args): pass
  def out(self, data, status=200):
   self.send_response(status); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(json.dumps(data).encode())
@@ -47,6 +52,14 @@ try:
  assert call('/api/upload',{})[0]==401
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==7,(status,c)
  assert '2–3 gün' in c['settings']['preparationText']
+ records['packages']['data']['tastingPrice']=1
+ records['packages']['data']['tastingIds']=['cookie-'+str(i) for i in range(1,8)]
+ status,cleaned=call('/api/catalog')
+ assert status==200 and set(records['packages']['data'])=={'packages'} and 'tastingPrice' not in cleaned
+ assert [p['price'] for p in cleaned['packages']]==[30000,60000,90000,110000]
+ seven_body={'key':str(uuid.uuid4()),'customer':'Box Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-'+str(i),'qty':1} for i in range(1,8)]}
+ status,seven=call('/api/orders',seven_body);assert status==200 and seven['total']==106000,(status,seven)
+ orders.clear()
  assert '170°C' in c['settings']['heatingInfo']
  records['settings']['data']['preparationText']='Özel hazırlık süresi'
  assert call('/api/catalog')[1]['settings']['preparationText']=='Özel hazırlık süresi'
@@ -78,11 +91,10 @@ try:
  records[pumpkin]={'id':pumpkin,'kind':'product','data':{**records['cookie-3']['data'],'id':pumpkin,'name':'Bal Kabaklı','boxEligible':True}}
  seasonal_body={**body,'key':str(uuid.uuid4()),'items':[{'id':pumpkin,'qty':9}]}
  status,nine=call('/api/orders',seasonal_body);assert status==200 and nine['total']==126000,(status,nine)
- records['packages']['data']['tastingIds']=['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7']
  records['cookie-3']['data']['active']=False
- seasonal_body['items']=[{'id':id,'qty':1} for id in records['packages']['data']['tastingIds']]
+ seasonal_body['items']=[{'id':id,'qty':1} for id in ['cookie-1','cookie-2',pumpkin,'cookie-4','cookie-5','cookie-6','cookie-7']]
  seasonal_body['key']=str(uuid.uuid4())
- status,seasonal=call('/api/orders',seasonal_body);assert status==200 and seasonal['total']==100000,(status,seasonal)
+ status,seasonal=call('/api/orders',seasonal_body);assert status==200 and seasonal['total']==106000,(status,seasonal)
  records[pumpkin]['data']['boxEligible']=False
  seasonal_body['key']=str(uuid.uuid4());seasonal_body['items']=[{'id':pumpkin,'qty':8}]
  status,excluded=call('/api/orders',seasonal_body);assert status==200 and excluded['total']==128000,(status,excluded)

@@ -8,7 +8,7 @@ export async function initialize(){
   const rows=[
     {id:'settings',kind:'settings',data:seed.settings},
     {id:'categories',kind:'categories',data:seed.categories},
-    {id:'packages',kind:'packages',data:{packages:seed.packages,tastingPrice:seed.tastingPrice,tastingIds:seed.tastingIds}},
+    {id:'packages',kind:'packages',data:{packages:seed.packages}},
     ...seed.products.map(p=>({id:p.id,kind:'product',data:p}))
   ];
   const {error}=await service().from('records').upsert(rows,{onConflict:'id',ignoreDuplicates:true});check(error);
@@ -19,7 +19,13 @@ export async function catalog(all=false):Promise<Catalog>{
   const rows=data || [];
   const record=(id:string)=>rows.find(r=>r.id===id)?.data;
   const products=rows.filter(r=>r.kind==='product').map(r=>r.data as Product).filter(p=>all || p.active).sort((a,b)=>a.sort-b.sort);
-  return {...record('packages'),products,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
+  const packageRecord=record('packages');
+  const packageData={packages:packageRecord.packages};
+  if(Object.keys(packageRecord).some(key=>key!=='packages')){
+    const {error:cleanupError}=await service().from('records').update({data:packageData}).eq('id','packages').eq('data',JSON.stringify(packageRecord));
+    check(cleanupError);
+  }
+  return {...packageData,products,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
 }
 export async function put(id:string,kind:string,data:unknown){
   const {error}=await service().from('records').upsert({id,kind,data},{onConflict:'id'});check(error);

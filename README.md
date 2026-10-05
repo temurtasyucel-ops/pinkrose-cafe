@@ -63,7 +63,7 @@ Panelde ürün/kampanya penceresini kapatma, sekme değiştirme, çıkış ve sa
 
 Ürünlerde Kutu paketlerine dahil seçeneği, kimliğine veya menüdeki sıra sayısına bakılmadan kutu hesabına katılımı belirler. Eski yedi üründe bu alan yoksa dahil kabul edilir. Yeni ürün formunda varsayılan açık gelir; farklı ürün gruplarında kapatılabilir.
 
-Tanışma paketinin yedi benzersiz çeşidi Paketler sekmesinden seçilir. Menüye sekizinci veya dokuzuncu ürün eklenmesi bu seçimi ve fiyatı değiştirmez. Seçili bir ürün görünmez, tükenmiş veya kutu dışında ise tanışma paketi alınamaz ve tanışma indirimi uygulanmaz. Yedi çeşitten oluşan tam set ve kalan adetler için uygun kutu kombinasyonu birlikte hesaplanır. Seçim bulunmayan eski kayıtlarda orijinal yedi çeşit kullanılır. SQL geçişi gerekmez.
+Kutu fiyatı, kutuya dahil ürünlerin toplam adedine göre 2’li, 4’lü, 6’lı ve 8’li kutular ile kalan tekli ürünlerin en uygun birleşiminden hesaplanır. Çeşit sayısı ve sezonluk ürün değişimi fiyat mantığını değiştirmez. Eski paket kaydındaki kullanılmayan alanlar katalog okunurken mevcut kutu fiyatları korunarak temizlenir. Eski siparişlerin kayıtlı tutarları korunur; SQL geçişi gerekmez.
 
 ## Ön sipariş ve ürün bakımı
 
