@@ -23,7 +23,7 @@ export async function catalog(all=false):Promise<Catalog>{
   const packageRecord=record('packages');
   const bulkPricing=validBulkPricing(packageRecord.bulkPricing)?packageRecord.bulkPricing:defaultBulkPricing;
   const packageData={packages:packageRecord.packages.map((p:Catalog['packages'][number])=>({...p,price:p.qty*bulkPricing.unitPrice})),bulkPricing};
-  if(JSON.stringify(packageRecord)!==JSON.stringify(packageData)){
+  if(!validBulkPricing(packageRecord.bulkPricing)||Object.keys(packageRecord).some(key=>!['packages','bulkPricing'].includes(key))||packageRecord.packages.some((p:Catalog['packages'][number])=>p.price!==p.qty*bulkPricing.unitPrice)){
     const {error:cleanupError}=await service().from('records').update({data:packageData}).eq('id','packages').eq('data',JSON.stringify(packageRecord));
     check(cleanupError);
   }
