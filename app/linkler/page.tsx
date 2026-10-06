@@ -35,7 +35,7 @@ export default function LinksPage() {
             </a>
           ))}
         </nav>
-        <footer className={styles.footer}>Manisa’dan, sevgiyle.<br /><span>pinkrosecafe.com.tr</span></footer>
+        <p className={styles.footer}>Manisa’dan, sevgiyle.<br /><span>pinkrosecafe.com.tr</span></p>
       </section>
     </main>
   );
