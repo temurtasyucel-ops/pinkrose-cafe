@@ -1,0 +1,15 @@
+.label{display:block;margin-top:5px;color:#a80000;font-size:12px;line-height:1.5;font-weight:600}
+.cart{margin:16px 0;padding:18px;border:1px solid #ecc3d2;border-radius:12px;background:#ffedf5;color:#a80000}
+.cart strong{display:block;font-size:16px;line-height:1.4}
+.cart p{margin:8px 0 0;font-size:13px;line-height:1.6}
+.explore{display:block;margin-top:12px;min-height:44px;padding:10px 0;border:0;background:transparent;color:inherit;text-align:left;font-weight:600}
+.seasonal{padding:24px;margin:0 0 30px;background:#ffedf5;border:1px solid #ecc3d2;border-radius:12px}
+.seasonal h3{margin:0 0 18px;font-size:28px}
+.seasonalGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+.seasonalProduct{display:flex;align-items:center;gap:18px;padding:12px;border:0;border-radius:8px;background:#fff9fb;color:#a80000;text-align:left;min-width:0}
+.seasonalProduct img{width:110px;height:130px;object-fit:contain;flex-shrink:0}
+.seasonalProduct span{display:grid;gap:8px;min-width:0}
+.seasonalProduct strong{font:italic 24px Georgia,serif}
+.seasonalProduct small{font-size:13px;line-height:1.6}
+.seasonalProduct b{font-size:12px}
+@media(max-width:600px){.seasonal{padding:18px}.seasonalProduct{gap:12px}.seasonalProduct img{width:80px;height:110px}.seasonalProduct strong{font-size:21px}}

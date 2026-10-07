@@ -3,6 +3,7 @@ import {defaultPaymentText} from './payment';
 import {realProducts} from './seed';
 export type Language='tr'|'en';
 export const english:Record<string,string>={
+ 'Çeşitlerini seç, talebini oluştur':'Choose your flavours and send your request',
  'Adet avantajı':'Quantity discount','Tekli fiyatlarla hesaplanır':'Individual prices apply',
  'ÖNİZLEME':'PREVIEW','Gerçek Pink Rose menüsü ve fiyatları. Siparişler deneme amaçlıdır.':'Our current menu and prices. Orders are for testing only.',
  'Ana menü':'Main navigation','Kurabiyelerimiz':'Our cookies','Hikâyemiz':'Our story','Sepetim':'My basket',' ürün':' items',
