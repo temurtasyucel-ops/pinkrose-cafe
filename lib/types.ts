@@ -2,7 +2,7 @@ export type Product={english?:Record<string,string>;id:string;name:string;catego
 export type Campaign={english?:Record<string,string>;id:string;title:string;text:string;discount:number;start:string;end:string;active:boolean};
 export type Settings={english?:Record<string,string>;whatsapp:string;instagram:string;deliveryText:string;deliveryFee:number;deliveryQuoted?:boolean;pickupAddress?:string;pickupHours?:string;pickupMapUrl?:string;ordersPaused?:boolean;pauseMessage?:string;paymentUrl?:string;paymentText?:string;preparationText?:string;leadDays?:number;storageInfo?:string;heatingInfo?:string;demo:boolean};
 export type Catalog={products:Product[];categories:string[];campaigns:Campaign[];settings:Settings;bulkPricing:{minQty:number;unitPrice:number};packages:{english?:Record<string,string>;qty:number;name:string;price:number}[]};
-export type Order={language?:'tr'|'en';id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;confirmedAt?:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
+export type Order={statusHistory?:{from:string;to:string;at:string}[];language?:'tr'|'en';id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;confirmedAt?:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
 export const money=(c:number)=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(c/100);
 export const liveCampaign=(c:Campaign)=>c.active&&(!c.start||new Date(c.start).getTime()<=Date.now())&&(!c.end||new Date(c.end).getTime()>=Date.now());
 export const statuses=['Onay bekliyor','Ödeme bekleniyor','Ödeme alındı','Onaylandı','Hazırlanıyor','Teslim edildi','İptal'];
@@ -21,9 +21,9 @@ export function deliveryQuote(order:Order,fee:number):Order{
  if(!Number.isSafeInteger(fee)||fee<0||fee>10000000)throw Error('Geçerli teslimat bedeli girin.');
  return {...order,deliveryFee:fee,deliveryFeePending:false,total:order.subtotal-order.discount+fee};
 }
-export function filterOrders(orders:Order[],query:string,status:string,mode:string):Order[]{
+export function filterOrders(orders:Order[],query:string,status:string,mode:string,delivery='Tümü'):Order[]{
  const q=query.trim().toLocaleLowerCase('tr-TR'),digits=q.replace(/\D/g,'');
- return orders.filter(o=>(status==='Tümü'||orderStatus(o.status)===status)&&(mode==='Tümü'||(mode==='Deneme'?o.demo:!o.demo))&&(!q||[o.number,o.customer,o.phone].some(v=>v.toLocaleLowerCase('tr-TR').includes(q))||(/^\+?[\d\s()-]+$/.test(q)&&digits.length>0&&o.phone.replace(/\D/g,'').includes(digits))));
+ return orders.filter(o=>(delivery==='Tümü'||(delivery==='Gel-al'?o.type==='Gel-al':o.type==='Teslimat'&&o.city===delivery))&&(status==='Tümü'||orderStatus(o.status)===status)&&(mode==='Tümü'||(mode==='Deneme'?o.demo:!o.demo))&&(!q||[o.number,o.customer,o.phone].some(v=>v.toLocaleLowerCase('tr-TR').includes(q))||(/^\+?[\d\s()-]+$/.test(q)&&digits.length>0&&o.phone.replace(/\D/g,'').includes(digits))));
 }
 
 export function confirmedTime(o:Order,english=false){return o.confirmedAt&&Number.isFinite(Date.parse(o.confirmedAt))?new Intl.DateTimeFormat(english?'en-GB':'tr-TR',{timeZone:'Europe/Istanbul',dateStyle:'medium',timeStyle:'short'}).format(new Date(o.confirmedAt)):'';}

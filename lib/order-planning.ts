@@ -46,3 +46,11 @@ export function productionPlan(orders:Order[],day:string){
  return {orders:confirmed,items,total:items.reduce((n,p)=>n+p.qty,0),unpaid:scheduled.filter(o=>!paid(o)).length,undatedPaid:open.filter(o=>paid(o)&&!localSchedule(o.confirmedAt)).length};
 }
 export function productionText(orders:Order[],day:string){const plan=productionPlan(orders,day);return ['Pink Rose · Günlük üretim',day,...plan.items.map(p=>`${p.qty} × ${p.name}`),`Toplam: ${plan.total} adet · ${plan.orders.length} sipariş`,'Yalnızca ödeme kontrolü tamamlanmış, kesin teslim günü atanmış açık canlı siparişler.'].join('\n');}
+
+export function missingConfirmedOrders(orders:Order[]){return openLiveOrders(orders).filter(o=>['Ödeme alındı','Hazırlanıyor'].includes(o.status)&&!localSchedule(o.confirmedAt));}
+export function recordStatusChange(order:Order,status:string,expected:string,now=new Date()):Order{
+ const current=order.status==='Yeni'?'Onay bekliyor':order.status;
+ if(current!==expected)throw Error('Sipariş durumu başka bir işlemle değişti. Yenileyip tekrar deneyin.');
+ if(current===status)return order;
+ return {...order,status,statusHistory:[...(order.statusHistory||[]),{from:current,to:status,at:now.toISOString()}]};
+}

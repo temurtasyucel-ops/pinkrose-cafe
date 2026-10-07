@@ -17,5 +17,5 @@ else if(kind==='settings'){if(data.leadDays!==undefined&&!validLeadDays(data.lea
 else if(kind==='schedule'){if(typeof data.id!=='string'||typeof data.expected!=='string')throw Error('Siparişin teslim zamanı doğrulanamadı.');await updateSchedule(data.id,data.value,data.expected);}
 else if(kind==='product-order'){await reorderProducts(data.ids,data.expected);}
 else if(kind==='delivery'){if(!cents(data.fee))throw Error('Geçerli teslimat bedeli girin.');await updateDelivery(data.id,data.fee);}
-else if(kind==='status'){if(!statuses.includes(data.status))throw Error('Geçersiz durum.');await updateStatus(data.id,data.status);}
+else if(kind==='status'){if(typeof data.id!=='string'||!statuses.includes(data.status)||!statuses.includes(data.expected))throw Error('Geçersiz durum.');await updateStatus(data.id,data.status,data.expected);}
 else throw Error('Geçersiz işlem.');return Response.json({ok:true});}catch(e){console.error(e);return Response.json({error:(e as Error).message},{status:e instanceof AdminError?e.status:400});}}

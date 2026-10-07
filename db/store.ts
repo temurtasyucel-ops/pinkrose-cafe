@@ -1,4 +1,4 @@
-import {setConfirmedSchedule} from '@/lib/order-planning';
+import {setConfirmedSchedule,recordStatusChange} from '@/lib/order-planning';
 import {sortedProducts,validateProductOrder} from '@/lib/product-order';
 import {service} from '@/lib/supabase/service';
 import {orderStatus,deliveryQuote} from '@/lib/types';
@@ -54,7 +54,7 @@ async function changeOrder(id:string,change:(order:Order)=>Order){
  const {data:updated,error:updateError}=await client.from('orders').update({data:change(data.data as Order)}).eq('id',id).eq('data',JSON.stringify(data.data)).select('id').maybeSingle();check(updateError);
  if(!updated)throw Error('Sipariş başka bir işlemle güncellendi. Yenileyip tekrar deneyin.');
 }
-export async function updateStatus(id:string,status:string){await changeOrder(id,o=>({...o,status}));}
+export async function updateStatus(id:string,status:string,expected:string){await changeOrder(id,o=>recordStatusChange(o,status,expected));}
 export async function updateDelivery(id:string,fee:number){await changeOrder(id,o=>deliveryQuote(o,fee));}
 
 export async function updateSchedule(id:string,value:unknown,expected:string){await changeOrder(id,o=>setConfirmedSchedule(o,value,expected));}
