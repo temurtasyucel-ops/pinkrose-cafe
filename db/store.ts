@@ -1,3 +1,5 @@
+import {setConfirmedSchedule} from '@/lib/order-planning';
+import {sortedProducts,validateProductOrder} from '@/lib/product-order';
 import {service} from '@/lib/supabase/service';
 import {orderStatus,deliveryQuote} from '@/lib/types';
 import {defaultBulkPricing,validBulkPricing} from '@/lib/pricing';
@@ -19,7 +21,8 @@ export async function catalog(all=false):Promise<Catalog>{
   const {data,error}=await service().from('records').select('id,kind,data');check(error);
   const rows=data || [];
   const record=(id:string)=>rows.find(r=>r.id===id)?.data;
-  const products=rows.filter(r=>r.kind==='product').map(r=>r.data as Product).filter(p=>all || p.active).sort((a,b)=>a.sort-b.sort);
+  const products=rows.filter(r=>r.kind==='product').map(r=>r.data as Product);
+  const orderedProducts=sortedProducts(products,record('product-order')).filter(p=>all || p.active);
   const packageRecord=record('packages');
   const bulkPricing=validBulkPricing(packageRecord.bulkPricing)?packageRecord.bulkPricing:defaultBulkPricing;
   const packageData={packages:packageRecord.packages.map((p:Catalog['packages'][number])=>({...p,price:p.qty*bulkPricing.unitPrice})),bulkPricing};
@@ -27,7 +30,7 @@ export async function catalog(all=false):Promise<Catalog>{
     const {error:cleanupError}=await service().from('records').update({data:packageData}).eq('id','packages').eq('data',JSON.stringify(packageRecord));
     check(cleanupError);
   }
-  return {...packageData,products,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
+  return {...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
 }
 export async function put(id:string,kind:string,data:unknown){
   const {error}=await service().from('records').upsert({id,kind,data},{onConflict:'id'});check(error);
@@ -53,3 +56,18 @@ async function changeOrder(id:string,change:(order:Order)=>Order){
 }
 export async function updateStatus(id:string,status:string){await changeOrder(id,o=>({...o,status}));}
 export async function updateDelivery(id:string,fee:number){await changeOrder(id,o=>deliveryQuote(o,fee));}
+
+export async function updateSchedule(id:string,value:unknown,expected:string){await changeOrder(id,o=>setConfirmedSchedule(o,value,expected));}
+export async function reorderProducts(ids:unknown,expected:unknown){
+ const client=service();
+ const {data:record,error}=await client.from('records').select('data').eq('id','product-order').maybeSingle();check(error);
+ const current=await catalog(true);
+ const order=validateProductOrder(current.products,ids,expected);
+ if(record){
+  const {data:updated,error:updateError}=await client.from('records').update({data:order}).eq('id','product-order').eq('data',JSON.stringify(record.data)).select('id').maybeSingle();check(updateError);
+  if(!updated)throw Error('Ürün sıralaması başka bir işlemle değişti. Yenileyip tekrar deneyin.');
+ }else{
+  const {error:insertError}=await client.from('records').insert({id:'product-order',kind:'product-order',data:order});
+  if(insertError?.code==='23505')throw Error('Ürün sıralaması başka bir işlemle değişti. Yenileyip tekrar deneyin.');check(insertError);
+ }
+}
