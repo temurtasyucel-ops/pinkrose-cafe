@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {quantityOffer} from '../lib/pricing.ts';
+const product={id:'cookie-1',active:true,stock:true,boxEligible:true,price:17000};
+const catalog={products:[product],bulkPricing:{minQty:2,unitPrice:15000}};
+assert.deepEqual(quantityOffer(catalog),{minQty:2,singleMin:17000,singleMax:17000,discountMin:15000,discountMax:15000});
+assert.deepEqual(quantityOffer({...catalog,products:[{...product,price:19000}],bulkPricing:{minQty:3,unitPrice:16000}}),{minQty:3,singleMin:19000,singleMax:19000,discountMin:16000,discountMax:16000});
+assert.equal(quantityOffer({...catalog,products:[]}),null);
+for(const override of [{active:false},{stock:false},{boxEligible:false},{price:14000}])assert.equal(quantityOffer({...catalog,products:[{...product,...override}]}),null);
+assert.deepEqual(quantityOffer({...catalog,products:[product,{...product,id:'cookie-2',price:12000}]}),{minQty:2,singleMin:12000,singleMax:17000,discountMin:12000,discountMax:15000});
+assert.equal(quantityOffer({...catalog,bulkPricing:{minQty:1,unitPrice:15000}}).minQty,1);
+console.log('PASS: banner follows editable unit price, threshold, product prices, eligibility, availability and cheaper products; no offer hides banner.');

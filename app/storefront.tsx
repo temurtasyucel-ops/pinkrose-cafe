@@ -11,6 +11,7 @@ import {readJson} from '@/lib/http';
 import {productCare} from '@/lib/care';
 import {priceBasket,boxEligible} from '@/lib/pricing';
 import ProductGallery from '@/components/product-gallery';
+import QuantityBanner from '@/components/quantity-banner';
 import {seed} from '@/lib/seed';
 import {Catalog,Product,money as trMoney,liveCampaign} from '@/lib/types';
 import {Language,translate,localContent} from '@/lib/i18n';
@@ -48,6 +49,7 @@ async function order(e:FormEvent<HTMLFormElement>){
 
 return <><Toaster theme="light" position="top-center"/>{ready&&data.settings.demo&&<div className="preview-bar">{t("ÖNİZLEME")} <span>{t("Gerçek Pink Rose menüsü ve fiyatları. Siparişler deneme amaçlıdır.")}</span></div>}
 <header className="site-header"><a className="wordmark" href="/">Pink Rose<span>CAFE</span></a><nav aria-label={t("Ana menü")}><a href="#menu">{t("Kurabiyelerimiz")}</a><a href="#story">{t("Hikâyemiz")}</a><a href={data.settings.instagram} target="_blank" rel="noreferrer" className="social"><Instagram size={20}/><span>Instagram</span></a></nav><div className="header-actions"><div className="language-switch" role="group" aria-label={language==='en'?'Choose language':'Dil seçimi'}><button type="button" lang="tr" aria-label="Türkçe" aria-pressed={language==='tr'} onClick={()=>chooseLanguage('tr')}>TR</button><button type="button" lang="en" aria-label="English" aria-pressed={language==='en'} onClick={()=>chooseLanguage('en')}>EN</button></div><button aria-label={t('Sepetim')+', '+count+t(" ürün")} className="cart-button" onClick={()=>setOpen(true)}><ShoppingBag size={19}/><span>{t("Sepetim")}</span><b>{count}</b></button></div></header>
+<QuantityBanner catalog={data} ready={ready} language={language} money={money}/>
 <main>{data.settings.preparationText&&<div className="notice preparation-notice"><Clock size={18}/><p>{setting('preparationText')}</p></div>}{paused&&<div className="notice order-pause" role="status"><b>{t("Sipariş alımına kısa bir mola")}</b><p>{pauseMessage}</p></div>}<section className="hero"><div className="hero-copy"><div className="eyebrow">{t("MANİSA’DAN, SEVGİYLE")}</div><h1>{t("Küçük bir mola.")}<br/><i>{t("Kocaman")}</i><br/>{t("bir mutluluk.")}</h1><p>{t("Ev mutfağında başlayan bir hikâye.")}<br/>{t("Her lokmasında Pink Rose.")}</p><a href="#menu" className="button">{t("Kurabiyeleri keşfet")}</a><div className="hero-foot"><Heart size={16}/><span>{t("Arife Betül Boztepe’nin mutfağından")}</span></div></div><div className="hero-photo"><img src="/products/gulpembe-dis.webp" alt={t("Pink Rose Gülpembe kurabiyesi")} fetchPriority="high"/></div></section>
 <div className="ribbon"><span>{t("Küçük bir mutluluk")}</span><span aria-hidden="true">✦</span><span>{t("Bir fincan kahvenin yanına")}</span><span aria-hidden="true">✦</span><span>{t("Pink Rose’dan bir lokma")}</span><span aria-hidden="true">✦</span></div>
 <section className="menu section" id="menu"><div className="section-heading"><div><div className="eyebrow">{t("PINK ROSE SEÇKİSİ")}</div><h2>{t("Birini seçmek")} <i>{t("zor.")}</i></h2></div><p>{t("En sevdiğin tadı bul.")}<br/>{t("Tatlı molanı kendin hazırla.")}</p></div>
