@@ -3,6 +3,8 @@ import {defaultPaymentText} from './payment';
 import {realProducts} from './seed';
 export type Language='tr'|'en';
 export const english:Record<string,string>={
+ 'Geçerli tarih ve saat seçin.':'Choose a valid date and time.',
+ 'Seçtiğiniz tarih hazırlık süresine uygun değil. Lütfen daha ileri bir tarih seçin.':'Your chosen date does not allow enough preparation time. Please choose a later date.',
  'Çeşitlerini seç, talebini oluştur':'Choose your flavours and send your request',
  'Adet avantajı':'Quantity discount','Tekli fiyatlarla hesaplanır':'Individual prices apply',
  'ÖNİZLEME':'PREVIEW','Gerçek Pink Rose menüsü ve fiyatları. Siparişler deneme amaçlıdır.':'Our current menu and prices. Orders are for testing only.',
