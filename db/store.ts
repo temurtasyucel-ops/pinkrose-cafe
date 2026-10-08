@@ -1,3 +1,4 @@
+import {calorieEstimate} from '@/lib/nutrition';
 import {setConfirmedSchedule,recordStatusChange} from '@/lib/order-planning';
 import {sortedProducts,validateProductOrder} from '@/lib/product-order';
 import {service} from '@/lib/supabase/service';
@@ -21,7 +22,7 @@ export async function catalog(all=false):Promise<Catalog>{
   const {data,error}=await service().from('records').select('id,kind,data');check(error);
   const rows=data || [];
   const record=(id:string)=>rows.find(r=>r.id===id)?.data;
-  const products=rows.filter(r=>r.kind==='product').map(r=>r.data as Product);
+  const products=rows.filter(r=>r.kind==='product').map(r=>({...r.data,calories:calorieEstimate(r.data as Product)}) as Product);
   const orderedProducts=sortedProducts(products,record('product-order')).filter(p=>all || p.active);
   const packageRecord=record('packages');
   const bulkPricing=validBulkPricing(packageRecord.bulkPricing)?packageRecord.bulkPricing:defaultBulkPricing;

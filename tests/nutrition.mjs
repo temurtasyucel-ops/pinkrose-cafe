@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {calorieEstimate,validCalories,boxWeight,weightRange} from '../lib/nutrition.ts';
+assert.equal(calorieEstimate({id:'cookie-1'}),570);
+assert.equal(calorieEstimate({id:'cookie-1',calories:null}),null);
+assert.equal(calorieEstimate({id:'new'}),null);
+assert.equal(calorieEstimate({id:'cookie-1',calories:635}),640);
+assert.equal(validCalories(-10),false);
+assert.equal(validCalories('570'),false);
+assert.deepEqual(weightRange('120–150 g'),[120,150]);
+assert.deepEqual(weightRange('130 g'),[130,130]);
+assert.equal(weightRange('150-120 g'),null);
+const products=[{id:'cookie-1',active:true,weight:'120–150 g'},{id:'cookie-2',active:true,weight:'130 g'},{id:'other',active:true,weight:'500 g',boxEligible:false}];
+assert.deepEqual(boxWeight(products,4),[480,600]);
+assert.deepEqual(boxWeight(products,8),[960,1200]);
+assert.deepEqual(boxWeight([{...products[0],weight:'200 g'}],4),[800,800]);
+assert.equal(boxWeight([...products,{id:'cookie-3',active:true}],4),null);
+assert.equal(boxWeight([],4),null);
+console.log('PASS: calorie overrides and clearing, unknown products, weight parsing and dynamic box ranges.');

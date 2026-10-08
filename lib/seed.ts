@@ -1,3 +1,4 @@
+import {calorieEstimate} from './nutrition';
 import {defaultPaymentText,defaultPaymentUrl} from './payment';
 import {defaultPreparation,defaultStorage,defaultHeating} from './care';
 import {defaultBulkPricing} from './pricing';
@@ -12,6 +13,6 @@ const flavors=[
  ['findik-kiran','Bitter çikolata parçaları ve fındıklı hamur. İçinde Nutella ve fındıklı dolgu.','Callebaut bitter Belçika çikolatası, fındık parçaları ve tereyağlı özel hamur. Nutella ve fındıklı dolgu.'],
  ['kitirti','Tereyağlı hamur, bitter çikolata ve çıtır Nesquik. İçinde Nutella dolgu.','Callebaut bitter Belçika çikolatası ve tereyağlı özel hamur. Nesquik ve Nutellalı dolgu.']
 ];
-export const realProducts:Product[]=flavors.map(([slug,description,ingredients],i)=>({id:`cookie-${i+1}`,name:cookieNames[i],category:'Kurabiyeler',description,ingredients,allergens:'Tam alerjen bilgisi için sipariş öncesinde bizimle iletişime geçin.',price:17000,oldPrice:0,image:`/products/${slug}-dis.webp`,insideImage:`/products/${slug}-ic.webp`,weight:'120–150 g',active:true,stock:true,boxEligible:true,featured:[0,2,4].includes(i),sort:i}));
+export const realProducts:Product[]=flavors.map(([slug,description,ingredients],i)=>({id:`cookie-${i+1}`,name:cookieNames[i],category:'Kurabiyeler',description,ingredients,allergens:'Tam alerjen bilgisi için sipariş öncesinde bizimle iletişime geçin.',price:17000,oldPrice:0,image:`/products/${slug}-dis.webp`,insideImage:`/products/${slug}-ic.webp`,weight:'120–150 g',calories:calorieEstimate({id:`cookie-${i+1}`}),active:true,stock:true,boxEligible:true,featured:[0,2,4].includes(i),sort:i}));
 export const defaultPackages=[{qty:2,name:'2’li Kutu',price:30000},{qty:4,name:'4’lü Keyif Kutusu',price:60000},{qty:6,name:'6’lı Ziyafet Kutusu',price:90000},{qty:8,name:'8’li Kutlama Kutusu',price:120000}];
 export const seed:Catalog={categories:['Kurabiyeler'],settings:{paymentUrl:defaultPaymentUrl,paymentText:defaultPaymentText,preparationText:defaultPreparation,storageInfo:defaultStorage,heatingInfo:defaultHeating,whatsapp:'905060584705',instagram:'https://www.instagram.com/pinkrosecafe.tr/',deliveryText:'Gel-al ücretsizdir. Manisa ve İzmir için ücretli teslimat seçenekleri vardır. Teslimat ücreti adresinize göre sipariş onayında netleşir.',deliveryFee:0,deliveryQuoted:true,demo:true},campaigns:[],products:realProducts,packages:defaultPackages,bulkPricing:defaultBulkPricing};
