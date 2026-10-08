@@ -1,0 +1,12 @@
+
+.nutrition{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;margin:8px 0 12px}
+.nutrition>strong{font-size:16px;font-weight:600}
+.nutrition>small{font-size:12px;color:#86525c}
+.nutrition>p{flex-basis:100%;font-size:12px;line-height:1.6;margin:0;color:#86525c}
+.intro{padding:20px 24px;margin:20px 0;background:#ffd8ea;border-radius:12px}
+.intro>strong{font-size:18px}
+.intro>p{margin:6px 0 0;font-size:14px;line-height:1.6}
+.boxWeight{display:flex;flex-direction:column;gap:6px}
+.boxWeight.boxWeight>strong{font-size:15px;line-height:1.4;font-family:inherit}
+.boxWeight>span{font-size:12px;color:#86525c}
+@media(max-width:700px){.intro{padding:18px}.intro>strong{font-size:16px}}
