@@ -50,7 +50,29 @@ try:
  assert call('/missing-page')[0]==404
  assert call('/api/admin')[0]==401
  assert call('/api/upload',{})[0]==401
- status,c=call('/api/catalog'); assert status==200 and len(c['products'])==7,(status,c)
+ status,c=call('/api/catalog'); assert status==200 and len(c['products'])==9,(status,c)
+
+ # Both new flavours are orderable without photos and share the editable discount.
+ by_id={product['id']:product for product in c['products']}
+ for id,name in [('cookie-8','Şirine'),('cookie-9','Pamuk Prenses')]:
+  product=by_id[id]
+  assert product['name']==name and product['active'] and product['stock']
+  assert product['boxEligible'] and product['seasonal'] is False
+  assert product['price']==by_id['cookie-1']['price'] and product['weight']==by_id['cookie-1']['weight']
+  assert product['image']=='' and product['insideImage']=='' and product['calories'] is None
+ assert 'Limonlu dolgu' in by_id['cookie-8']['ingredients'] and 'Nutella' not in by_id['cookie-8']['ingredients']
+ assert 'ceviz' in by_id['cookie-9']['ingredients'] and 'Elmalı tarçınlı dolgu' in by_id['cookie-9']['ingredients']
+ new_order={'key':str(uuid.uuid4()),'customer':'New Flavour Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-8','qty':1},{'id':'cookie-9','qty':1}]}
+ status,new=call('/api/orders',new_order); assert status==200 and new['total']==30000,(status,new)
+ assert all(name in new['whatsappMessage'] for name in ['Şirine','Pamuk Prenses'])
+ mixed_order={**new_order,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':1},{'id':'cookie-8','qty':1}]}
+ assert call('/api/orders',mixed_order)[1]['total']==30000
+ records['cookie-8']['data']['price']=18000
+ assert next(p for p in call('/api/catalog')[1]['products'] if p['id']=='cookie-8')['price']==18000
+ records['cookie-8']['data']['price']=17000
+ assert len([r for r in records.values() if r['kind']=='product'])==9
+ orders.clear()
+ print('PASS: both new flavours, missing photos, mixed discounts, WhatsApp names and preserved panel edits.')
  assert '2–3 gün' in c['settings']['preparationText']
  records['packages']['data']['tastingPrice']=1
  records['packages']['data']['tastingIds']=['cookie-'+str(i) for i in range(1,8)]

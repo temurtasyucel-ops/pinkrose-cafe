@@ -48,6 +48,8 @@ const flavours=[
  ['White chocolate, cocoa and coconut, with a Raffaello filling.','Callebaut Belgian white chocolate, cocoa and our buttery dough, with coconut powder and a Raffaello filling.'],
  ['Two-tone dark and white chocolate dough, with a Ferrero Rocher filling.','Callebaut Belgian dark and white chocolate, hazelnut pieces and our buttery checkerboard dough, with a Ferrero Rocher filling.'],
  ['Chocolate chips and hazelnut dough, with a Nutella and hazelnut filling.','Callebaut Belgian dark chocolate, hazelnut pieces and our buttery dough, with a Nutella and hazelnut filling.'],
- ['Buttery dough, dark chocolate and crunchy Nesquik, with a Nutella filling.','Callebaut Belgian dark chocolate and our buttery dough, with a Nesquik and Nutella filling.']
+ ['Buttery dough, dark chocolate and crunchy Nesquik, with a Nutella filling.','Callebaut Belgian dark chocolate and our buttery dough, with a Nesquik and Nutella filling.'],
+ ['Buttery white chocolate dough with a lemon filling, topped with white chocolate drizzle and a dried lemon piece.','Callebaut Belgian white chocolate and our special buttery dough, with a lemon filling. Topped with white chocolate drizzle and a dried lemon piece.'],
+ ['Buttery dough with white chocolate and walnut pieces, with an apple and cinnamon filling. Topped with white chocolate drizzle and a dried apple piece.','Callebaut Belgian white chocolate, walnut pieces and our special buttery dough, with an apple and cinnamon filling. Topped with white chocolate drizzle and a dried apple piece.']
 ];
 realProducts.forEach((p,i)=>{english[p.description]=flavours[i][0];english[p.ingredients]=flavours[i][1];});
