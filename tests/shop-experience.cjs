@@ -1,0 +1,28 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),ts=require('typescript');
+const cache=new Map();
+function load(file){file=path.resolve(__dirname,'..',file);if(cache.has(file))return cache.get(file).exports;const module={exports:{}};cache.set(file,module);const code=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;const localRequire=name=>name.startsWith('.')?load(path.relative(path.resolve(__dirname,'..'),path.resolve(path.dirname(file),name+'.ts'))):require(name);vm.runInThisContext('(function(require,module,exports){'+code+'\n})',{filename:file})(localRequire,module,module.exports);return module.exports;}
+const {boxSelection,cleanGift,productAvailable,validLastOrderDate}=load('lib/shop-experience.ts');
+const {orderSummary,customerOrderMessage}=load('lib/types.ts');
+const {publicReview,insightSummary}=load('lib/shop-insights.ts');
+const c={products:[{id:'cookie-1',price:17000,active:true,stock:true,boxEligible:true},{id:'cheap',price:10000,active:true,stock:true,boxEligible:true},{id:'drink',price:9000,active:true,stock:true,boxEligible:false}],bulkPricing:{minQty:2,unitPrice:15000}};
+assert.equal(boxSelection(c,{'cookie-1':1},4).complete,false);
+assert.deepEqual(boxSelection(c,{'cookie-1':2,cheap:2},4),{items:[{id:'cookie-1',qty:2,price:17000},{id:'cheap',qty:2,price:10000}],count:4,remaining:0,total:50000,complete:true});
+assert.equal(boxSelection({...c,bulkPricing:{minQty:5,unitPrice:14000}},{'cookie-1':4},4).total,68000);
+assert.throws(()=>boxSelection(c,{'cookie-1':5},4));
+assert.throws(()=>boxSelection(c,{drink:1},4));
+assert.throws(()=>boxSelection({...c,products:c.products.map(p=>({...p,stock:false}))},{'cookie-1':1},4));
+assert.equal(validLastOrderDate('2026-02-30'),false);
+assert.equal(validLastOrderDate('2026-10-16'),true);
+const scheduled={...c.products[0],lastOrderDate:'2026-10-16'};
+assert.equal(productAvailable(scheduled,new Date('2026-10-16T20:59:59Z')),true);
+assert.equal(productAvailable(scheduled,new Date('2026-10-16T21:00:00Z')),false);
+assert.equal(cleanGift(undefined),undefined);
+assert.throws(()=>cleanGift({recipient:'A'}));assert.throws(()=>cleanGift({recipient:'İpek',phone:'123'}));assert.throws(()=>cleanGift({recipient:'İpek',message:'x'.repeat(301)}));
+const gift=cleanGift({recipient:' İpek Ş. ',phone:'0506 058 47 05',message:' İyi ki doğdun! '});
+const order={gift,number:'PR-TEST',customer:'Yücel',phone:'05060584705',type:'Gel-al',items:[],subtotal:30000,discount:0,deliveryFee:0,total:30000,status:'Onay bekliyor',demo:false};
+assert.ok(orderSummary(order).includes('Alıcı: İpek Ş.'));assert.ok(customerOrderMessage({...order,language:'en'}).includes('Gift note: İyi ki doğdun!'));
+assert.equal(publicReview({published:true,consent:false}),null);
+assert.deepEqual(publicReview({id:'r1',name:'İpek Ş.',text:'Harika!',rating:5,published:true,consent:true,orderId:'secret',phone:'secret'}),{id:'r1',name:'İpek Ş.',text:'Harika!',rating:5});
+const stats=insightSummary([{event:'product_view',productId:'cookie-1',quantity:1},{event:'cart_add',productId:'cookie-1',quantity:4},{event:'box_complete',quantity:4}]);
+assert.equal(stats.counts.cart_add,1);assert.equal(stats.products['cookie-1'].quantity,4);assert.equal(stats.counts.box_complete,1);
+console.log('PASS: mixed/cheaper box prices, changed thresholds, unavailable/non-box items, Istanbul date cutoff, optional gift and full summaries, review privacy and action-vs-quantity measurement.');

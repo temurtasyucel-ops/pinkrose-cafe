@@ -22,7 +22,14 @@ class Mock(BaseHTTPRequestHandler):
    orders.setdefault(data['request_key'], data); return self.out(None, 201)
   self.out({'error': 'unexpected'}, 500)
  def do_GET(self):
-  if self.path.startswith('/rest/v1/records'): return self.out(list(records.values()))
+  if self.path.startswith('/rest/v1/records'):
+   q=parse_qs(urlparse(self.path).query); rows=list(records.values())
+   for key in ['id','kind']:
+    for rule in q.get(key,[]):
+     if rule.startswith('eq.'): rows=[r for r in rows if r[key]==rule[3:]]
+     elif rule.startswith('in.('): rows=[r for r in rows if r[key] in rule[4:-1].split(',')]
+   if q.get('data->>published')==['eq.true']: rows=[r for r in rows if r['data'].get('published') is True]
+   return self.out(rows)
   if self.path.startswith('/rest/v1/orders'):
    key=parse_qs(urlparse(self.path).query).get('request_key', [''])[0].removeprefix('eq.')
    return self.out([orders[key]] if key in orders else [])
@@ -54,7 +61,7 @@ try:
 
  # Both new flavours are orderable without photos and share the editable discount.
  by_id={product['id']:product for product in c['products']}
- for id,name in [('cookie-8','Şirine'),('cookie-9','Pamuk Prenses')]:
+ for id,name in [('cookie-8','Şirine'),('cookie-9','Gönülçelen')]:
   product=by_id[id]
   assert product['name']==name and product['active'] and product['stock']
   assert product['boxEligible'] and product['seasonal'] is False
@@ -64,13 +71,51 @@ try:
  assert 'ceviz' in by_id['cookie-9']['ingredients'] and 'Elmalı tarçınlı dolgu' in by_id['cookie-9']['ingredients']
  new_order={'key':str(uuid.uuid4()),'customer':'New Flavour Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-8','qty':1},{'id':'cookie-9','qty':1}]}
  status,new=call('/api/orders',new_order); assert status==200 and new['total']==30000,(status,new)
- assert all(name in new['whatsappMessage'] for name in ['Şirine','Pamuk Prenses'])
+ assert all(name in new['whatsappMessage'] for name in ['Şirine','Gönülçelen'])
  mixed_order={**new_order,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':1},{'id':'cookie-8','qty':1}]}
  assert call('/api/orders',mixed_order)[1]['total']==30000
  records['cookie-8']['data']['price']=18000
  assert next(p for p in call('/api/catalog')[1]['products'] if p['id']=='cookie-8')['price']==18000
  records['cookie-8']['data']['price']=17000
  assert len([r for r in records.values() if r['kind']=='product'])==9
+ # Updated panel name must already be in server HTML, before client hydration.
+ records['cookie-9']['data']['name']='Gönülçelen Özel'
+ assert 'Gönülçelen Özel'.encode() in call('/')[1]
+ records['cookie-9']['data']['name']='Gönülçelen'
+ # Gift fields survive persistence, WhatsApp and retry; malformed gifts do not insert.
+ gift_key=str(uuid.uuid4())
+ gift={'recipient':'Alıcı Test','phone':'05060584705','message':'İyi ki doğdun!'}
+ status,gifted=call('/api/orders',{**new_order,'key':gift_key,'gift':gift})
+ assert status==200 and orders[gift_key]['data']['gift']==gift,(status,gifted)
+ assert all(x in gifted['whatsappMessage'] for x in ['Alıcı Test','İyi ki doğdun!','Hediye siparişi'])
+ assert call('/api/orders',{**new_order,'key':gift_key,'gift':{'recipient':'Değişen'}})[1]==gifted
+ before_gift=len(orders)
+ assert call('/api/orders',{**new_order,'key':str(uuid.uuid4()),'gift':{'recipient':'A'}})[0]==400
+ assert len(orders)==before_gift
+ # End date is enforced server-side, including on mixed orders.
+ records['cookie-8']['data']['lastOrderDate']='2020-01-01'
+ assert call('/api/orders',{**new_order,'key':str(uuid.uuid4())})[0]==400
+ records['cookie-8']['data'].pop('lastOrderDate')
+ # Insights accept only bounded, anonymous event fields. Public catalog does not leak them.
+ assert call('/api/insights',{'event':'product_view','productId':'cookie-1','quantity':1,'customer':'Must not persist'})[0]==204
+ insight=next(r['data'] for r in records.values() if r['kind']=='insight')
+ assert set(insight)=={'event','productId','quantity','day'}
+ assert call('/api/insights',{'event':'payment','quantity':1})[0]==400
+ records['review-test']={'id':'review-test','kind':'review','data':{'id':'review-test','orderId':'private-id','name':'İpek Ş.','text':'Harika bir kurabiye.','rating':5,'published':True,'consent':True}}
+ status,public=call('/api/catalog');assert status==200 and len(public['reviews'])==1
+ assert set(public['reviews'][0])=={'id','name','text','rating'}
+ records.pop('review-test')
+ # No live inquiries while demo/paused; live inquiry does not create an order.
+ inquiry={'customer':'Etkinlik Test','phone':'05060584705','occasion':'Doğum günü','quantity':30,'date':'','note':'Not'}
+ assert call('/api/inquiries',inquiry)[0]==400
+ records['settings']['data']['demo']=False
+ before_inquiry=len(orders)
+ assert call('/api/inquiries',inquiry)[0]==200 and len(orders)==before_inquiry
+ assert any(r['kind']=='inquiry' and r['data']['quantity']==30 for r in records.values())
+ records['settings']['data']['demo']=True
+ assert call('/api/admin',{'kind':'review','data':{} })[0]==401
+ assert call('/api/inquiries',inquiry,origin='https://other.example')[0]==400
+ print('PASS: live SSR names, gift persistence/retries/validation, expired products, anonymous insights, private fields, verified review projection and separate group inquiries.')
  orders.clear()
  print('PASS: both new flavours, missing photos, mixed discounts, WhatsApp names and preserved panel edits.')
  assert '2–3 gün' in c['settings']['preparationText']

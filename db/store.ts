@@ -1,3 +1,6 @@
+import {flavourDefaults,productAvailable} from '@/lib/shop-experience';
+import {publicReview} from '@/lib/shop-insights';
+import type {ShopReview,ShopInsight,GroupInquiry} from '@/lib/shop-insights';
 import {calorieEstimate} from '@/lib/nutrition';
 import {setConfirmedSchedule,recordStatusChange} from '@/lib/order-planning';
 import {sortedProducts,validateProductOrder} from '@/lib/product-order';
@@ -19,11 +22,11 @@ export async function initialize(){
 }
 export async function catalog(all=false):Promise<Catalog>{
   await initialize();
-  const {data,error}=await service().from('records').select('id,kind,data');check(error);
+  const {data,error}=await service().from('records').select('id,kind,data').in('kind',['settings','categories','packages','product','product-order','campaign']);check(error);
   const rows=data || [];
   const record=(id:string)=>rows.find(r=>r.id===id)?.data;
-  const products=rows.filter(r=>r.kind==='product').map(r=>({...r.data,calories:calorieEstimate(r.data as Product)}) as Product);
-  const orderedProducts=sortedProducts(products,record('product-order')).filter(p=>all || p.active);
+  const products=rows.filter(r=>r.kind==='product').map(r=>({...r.data,flavourNotes:r.data.flavourNotes??flavourDefaults[r.id]??'',calories:calorieEstimate(r.data as Product)}) as Product);
+  const orderedProducts=sortedProducts(products,record('product-order')).filter(p=>all || p.active).map(p=>all?p:{...p,stock:productAvailable(p)});
   const packageRecord=record('packages');
   const bulkPricing=validBulkPricing(packageRecord.bulkPricing)?packageRecord.bulkPricing:defaultBulkPricing;
   const packageData={packages:packageRecord.packages.map((p:Catalog['packages'][number])=>({...p,price:p.qty*bulkPricing.unitPrice})),bulkPricing};
@@ -31,7 +34,10 @@ export async function catalog(all=false):Promise<Catalog>{
     const {error:cleanupError}=await service().from('records').update({data:packageData}).eq('id','packages').eq('data',JSON.stringify(packageRecord));
     check(cleanupError);
   }
-  return {...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
+  const {data:reviewRows,error:reviewError}=await service().from('records').select('data').eq('kind','review').eq('data->>published','true').limit(12);
+  if(reviewError)console.error('Reviews unavailable:',reviewError.message);
+  const reviews=(reviewRows||[]).map(r=>publicReview(r.data as ShopReview)).filter((r):r is NonNullable<typeof r>=>!!r);
+  return {reviews,...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
 }
 export async function put(id:string,kind:string,data:unknown){
   const {error}=await service().from('records').upsert({id,kind,data},{onConflict:'id'});check(error);
@@ -71,4 +77,18 @@ export async function reorderProducts(ids:unknown,expected:unknown){
   const {error:insertError}=await client.from('records').insert({id:'product-order',kind:'product-order',data:order});
   if(insertError?.code==='23505')throw Error('Ürün sıralaması başka bir işlemle değişti. Yenileyip tekrar deneyin.');check(insertError);
  }
+}
+
+export async function getShopManagement(){
+ const client=service(),cutoff=new Date(Date.now()-29*86400000).toISOString().slice(0,10);
+ const [reviews,inquiries,insights]=await Promise.all([
+  client.from('records').select('data').eq('kind','review').limit(200),
+  client.from('records').select('data').eq('kind','inquiry').order('id',{ascending:false}).limit(200),
+  client.from('records').select('data').eq('kind','insight').gte('data->>day',cutoff).limit(5000)
+ ]);
+ for(const r of [reviews,inquiries,insights])check(r.error);
+ return {reviews:(reviews.data||[]).map(r=>r.data as ShopReview),inquiries:(inquiries.data||[]).map(r=>r.data as GroupInquiry),insights:(insights.data||[]).map(r=>r.data as ShopInsight),since:cutoff,limited:(insights.data||[]).length===5000};
+}
+export async function orderById(id:string):Promise<Order|null>{
+ const {data,error}=await service().from('orders').select('data').eq('id',id).maybeSingle();check(error);return data?.data||null;
 }

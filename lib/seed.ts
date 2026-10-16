@@ -3,7 +3,7 @@ import {defaultPaymentText,defaultPaymentUrl} from './payment';
 import {defaultPreparation,defaultStorage,defaultHeating} from './care';
 import {defaultBulkPricing} from './pricing';
 import {Catalog,Product} from './types';
-export const cookieNames=['Gülpembe','Aşk Dediğin','Kara Sevda','İnci Tanem','Şah Mat','Fındık Kıran','Kıtırtı','Şirine','Pamuk Prenses'];
+export const cookieNames=['Gülpembe','Aşk Dediğin','Kara Sevda','İnci Tanem','Şah Mat','Fındık Kıran','Kıtırtı','Şirine','Gönülçelen'];
 const flavors=[
  ['gulpembe','Pembe hamur, ceviz ve beyaz çikolata. İçinde akışkan beyaz çikolata dolgu.','Callebaut beyaz Belçika çikolatası, ceviz parçaları ve tereyağlı özel pembe hamur. Callebaut beyaz Belçika çikolatalı akışkan dolgu.'],
  ['ask-dedigin','Kırmızı kakaolu hamur ve beyaz çikolata. İçinde akışkan beyaz çikolata dolgu.','Callebaut beyaz Belçika çikolatası, kakao ve tereyağlı özel kırmızı hamur. Callebaut beyaz Belçika çikolatalı akışkan dolgu.'],

@@ -80,3 +80,18 @@ Canlı akış: Onay bekliyor → WhatsApp üzerinden ürünler, teslim zamanı v
 Müşterinin WhatsApp onay bağlantısı kaydedilmiş siparişin sunucuda oluşturulan tam özetini içerir: müşteri ve telefon, ürünler/adetler, teslimat türü/şehir/adres, tarih/saat tercihi, not, ara toplam, indirim, teslimat ücreti veya bekleme bilgisi ve toplam. Aynı isteğin tekrarında önceki kaydın mesajı döner; tarayıcıdaki sonradan değiştirilmiş formdan oluşturulmaz. Mesajı müşteri WhatsApp üzerinden kendisi gönderir.
 
 Ödeme bilgileri bağlantısı varsayılan olarak https://dokunuver.com.tr/i/6FU5V2 adresidir; Ayarlar bölümünden değiştirilebilir. Sipariş detayındaki Ödeme bilgilerini gönder, müşteriye kesin toplam ve link içeren WhatsApp taslağı açar. Teslimat bedeli beklerken veya değiştirilmiş bedel henüz kaydedilmemişken düğme kapalıdır. Deneme, ödeme alınmış, hazırlanan, teslim edilmiş veya iptal siparişlerinde yeni ödeme mesajı oluşturulmaz. Mesaj açmak durumu değiştirmez ve otomatik göndermez. Tarih/saat alanı müşteri tercihi olarak etiketlenir; göndermeden önce anlaşılmış tarihi kontrol edin.
+
+
+### Storefront experience (October 2026)
+
+The home page reads the current catalog on the server and refreshes it on the client. Existing panel prices and product names remain authoritative. Box selection uses the same quantity-pricing rules as checkout.
+
+Product editing includes short flavour notes, a new-product badge and an optional last order date (inclusive, Europe/Istanbul). Expired dates prevent new orders server-side; clear the date to reopen. No photos or nutritional values are invented.
+
+Gift recipient details and card messages are stored with orders and included in customer WhatsApp summaries. Group/event enquiries use a separate form and private panel list; they do not create confirmed orders or reserve production capacity.
+
+The panel's customer experience tab manages reviews and anonymous action counts. Publishing a review requires a delivered non-demo order and confirmed customer permission. Only display name, text, rating and an opaque review ID are public. Customer and order details stay private. Empty reviews are not shown.
+
+Interaction records contain only action, optional product ID, quantity and Istanbul date. They do not store customer information, visitor IDs or cookies. Do Not Track is respected. Counts are events, not unique people or confirmed sales. The panel displays at most 5,000 events from the last 30 calendar days; sampling cleanup removes interaction records older than 35 days. Real order records are never removed by this cleanup.
+
+New records use the existing private `records` table with `review`, `inquiry` and `insight` kinds; no SQL migration is required. Public catalog reads are scoped to catalog kinds and explicitly projected published reviews.

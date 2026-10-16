@@ -3,6 +3,8 @@ import {defaultPaymentText} from './payment';
 import {realProducts} from './seed';
 export type Language='tr'|'en';
 export const english:Record<string,string>={
+ 'Hediye alıcısını, telefonunu ve en fazla 300 karakterlik notunu kontrol edin.':'Check the gift recipient, phone number and message (up to 300 characters).',
+ 'Hediye bilgilerini kontrol edin.':'Check the gift details.',
  'Geçerli tarih ve saat seçin.':'Choose a valid date and time.',
  'Seçtiğiniz tarih hazırlık süresine uygun değil. Lütfen daha ileri bir tarih seçin.':'Your chosen date does not allow enough preparation time. Please choose a later date.',
  'Çeşitlerini seç, talebini oluştur':'Choose your flavours and send your request',

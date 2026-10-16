@@ -1,0 +1,67 @@
+'use client';
+import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {Plus,Minus,Gift,Package,Check,ArrowRight} from 'lucide-react';
+import {Dialog,DialogContent,DialogTitle,DialogDescription} from '@/components/ui/dialog';
+import type {Catalog,Product} from '@/lib/types';
+import type {Language} from '@/lib/i18n';
+import type {InsightEvent} from '@/lib/shop-insights';
+import {localContent} from '@/lib/i18n';
+import {boxSelection,flavourEnglish,productAvailable} from '@/lib/shop-experience';
+import {boxEligible} from '@/lib/pricing';
+import {earliestOrderDate,leadDays} from '@/lib/order-date';
+import {readJson} from '@/lib/http';
+import styles from './shop-experience.module.css';
+
+export function trackShop(event:InsightEvent,productId?:string,quantity=1){
+ // No customer, phone, address, cookie or visitor identifier is sent.
+ if(typeof navigator==='undefined'||navigator.doNotTrack==='1')return;
+ void fetch('/api/insights',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event,productId,quantity}),keepalive:true}).catch(()=>{});
+}
+export function FlavourNotes({product,language}:{product:Product;language:Language}){
+ const text=product.flavourNotes?.trim();if(!text)return null;
+ const label=language==='en'?product.english?.flavourNotes||flavourEnglish[text]||text:text;
+ return <p className={styles.flavours}>{label}</p>;
+}
+export function ProductLabels({product,language}:{product:Product;language:Language}){
+ const en=language==='en';
+ return <div className={styles.labels}>{product.isNew&&<span>{en?'New':'Yeni'}</span>}{product.seasonal&&<span>{en?'Seasonal':'Sezonluk'}</span>}{product.lastOrderDate&&<span>{en?'Last order date: ':'Son sipariş: '}{new Intl.DateTimeFormat(en?'en-GB':'tr-TR',{day:'numeric',month:'short',timeZone:'Europe/Istanbul'}).format(new Date(product.lastOrderDate+'T12:00:00Z'))}</span>}</div>;
+}
+
+export function BoxBuilder({catalog,ready,language,money,onAdd}:{catalog:Catalog;ready:boolean;language:Language;money:(n:number)=>string;onAdd:(selection:Record<string,number>)=>boolean}){
+ const en=language==='en';
+ const [target,setTarget]=useState<number|null>(null),[selection,setSelection]=useState<Record<string,number>>({}),[error,setError]=useState('');
+ const completed=useRef(false);
+ const products=catalog.products.filter(p=>productAvailable(p)&&boxEligible(p));
+ const current=useRef({selection,target});current.current={selection,target};
+ useEffect(()=>{if(!target)return;
+  const hidden=()=>{const s=current.current;if(document.visibilityState==='hidden'&&!completed.current&&s.target&&Object.values(s.selection).some(q=>q>0)){trackShop('box_abandon');completed.current=true;}};
+  document.addEventListener('visibilitychange',hidden);return()=>document.removeEventListener('visibilitychange',hidden);
+ },[target]);
+ const start=(qty:number)=>{completed.current=false;setTarget(qty);setSelection({});setError('');trackShop('box_open');};
+ const close=()=>{if(!completed.current&&Object.values(selection).some(q=>q>0))trackShop('box_abandon');setTarget(null);};
+ let box:ReturnType<typeof boxSelection>|null=null;
+ try{if(target)box=boxSelection(catalog,selection,target);}catch{/* A product may have changed while selecting. */}
+ const selectionInvalid=target!==null&&!box;
+ const change=(id:string,delta:number)=>{setError('');completed.current=false;setSelection(s=>{const count=Object.values(s).reduce((n,q)=>n+q,0);if(delta>0&&count>=(target||0))return s;return {...s,[id]:Math.max(0,(s[id]||0)+delta)};});};
+ return <section className={styles.boxSection} id="kutunu-olustur" aria-labelledby="box-title"><div className={styles.boxHeading}><div><span className="eyebrow">{en?'YOUR BOX, YOUR FAVOURITES':'SENİN KUTUN, SENİN FAVORİLERİN'}</span><h2 id="box-title">{en?'A little happiness, your way.':'Mutluluğu kendin seç.'}</h2><p>{en?'Choose a box size, then mix your favourite eligible cookies.':'Kutu boyunu seç, sevdiğin çeşitleri karıştır.'}</p></div><Package size={40}/></div><div className={styles.boxSizes}>{catalog.packages.map(p=><button key={p.qty} type="button" disabled={!ready||catalog.settings.ordersPaused||!products.length} onClick={()=>start(p.qty)}><b>{p.qty}</b><span>{localContent(p,'name',p.name,language)}</span><small>{en?'Choose flavours':'Çeşitleri seç'} <ArrowRight size={14}/></small></button>)}</div><p className={styles.note}>{en?`${catalog.bulkPricing.minQty}+ eligible cookies: up to ${money(catalog.bulkPricing.unitPrice)} each. Lower individual prices are preserved.`:`Kutuya dahil ${catalog.bulkPricing.minQty} adet ve üzeri üründe adet fiyatı en fazla ${money(catalog.bulkPricing.unitPrice)}. Daha düşük tekli fiyatlar korunur.`}</p>
+ <Dialog open={target!==null} onOpenChange={o=>!o&&close()}><DialogContent className={styles.builder}><DialogTitle>{en?`Build your ${target}-cookie box`:`${target}’li kutunu oluştur`}</DialogTitle><DialogDescription>{en?'Select each flavour and quantity. You can choose a flavour more than once.':'Her çeşitten istediğin adedi seç. Aynı çeşidi birden fazla ekleyebilirsin.'}</DialogDescription><div className={styles.boxProgress} role="status">{box?.count??0} / {target} {en?'selected':'seçildi'}<progress max={target||1} value={box?.count||0}/></div><div className={styles.boxProducts}>{products.map(p=><div key={p.id} className={styles.boxProduct}>{p.image?<img src={p.image} alt=""/>:<span className={styles.initial}>{p.name[0]}</span>}<div><b>{localContent(p,'name',p.name,language)}</b><FlavourNotes product={p} language={language}/><small>{money(p.price)} · {p.weight}</small></div><div className={styles.counter}><button type="button" aria-label={p.name+(en?' decrease':' azalt')} disabled={!selection[p.id]} onClick={()=>change(p.id,-1)}><Minus size={16}/></button><span>{selection[p.id]||0}</span><button type="button" aria-label={p.name+(en?' increase':' artır')} disabled={!box||box.remaining===0} onClick={()=>change(p.id,1)}><Plus size={16}/></button></div></div>)}</div>
+ <div className={styles.chosen}>{Object.entries(selection).filter(([,q])=>q>0).map(([id,q])=>{const p=catalog.products.find(p=>p.id===id);return <span key={id}>{p?.image&&<img src={p.image} alt=""/>}{q} × {p?localContent(p,'name',p.name,language):id}</span>;})}</div>
+ {selectionInvalid&&<p role="alert">{en?'An item has changed. Reset your selection to continue.':'Bir ürün değişti. Devam etmek için seçimini sıfırla.'}</p>}{error&&<p role="alert">{error}</p>}
+ <div className={styles.builderFooter}><div><small>{en?'Products, delivery excluded':'Ürün toplamı, teslimat hariç'}</small><strong>{box?money(box.total):'—'}</strong></div><button type="button" className="button" disabled={!box?.complete||!ready||!!catalog.settings.ordersPaused} onClick={()=>{if(!box?.complete)return;try{if(onAdd(selection)){completed.current=true;trackShop('box_complete',undefined,target||1);setTarget(null);}}catch{setError(en?'Review your quantities.':'Adetleri kontrol et.');}}}>{box?.complete?(en?'Add box to basket':'Kutuyu sepete ekle'):(en?`Choose ${box?.remaining??target} more`:`${box?.remaining??target} ürün daha seç`)}</button></div><p className={styles.note}>{en?'Any additional campaign discount is applied in your basket.':'Varsa ek kampanya indirimi sepette uygulanır.'}</p><button type="button" className="text-link" onClick={()=>setSelection({})}>{en?'Reset selection':'Seçimi sıfırla'}</button></DialogContent></Dialog></section>;
+}
+
+export function GiftFields({language,checked,onChange}:{language:Language;checked:boolean;onChange:(v:boolean)=>void}){
+ const en=language==='en';
+ return <fieldset className={styles.gift}><legend><Gift size={18}/>{en?'A sweet gift':'Tatlı bir hediye'}</legend><label className={styles.check}><input type="checkbox" checked={checked} onChange={e=>onChange(e.target.checked)}/>{en?'I am sending this as a gift':'Hediye gönderiyorum'}</label>{checked&&<><label>{en?'Recipient name':'Alıcının adı soyadı'}<input name="recipient" required minLength={2} maxLength={100} autoComplete="off"/></label><label>{en?'Recipient phone (optional)':'Alıcı telefonu (isteğe bağlı)'}<input name="recipientPhone" type="tel" maxLength={25} autoComplete="off"/></label><label>{en?'Gift card message (optional)':'Hediye kartı notu (isteğe bağlı)'}<textarea name="giftMessage" maxLength={300}/></label><p>{en?'Your card note is saved with the order. We will confirm the presentation and delivery on WhatsApp.':'Kart notun siparişle birlikte kaydedilir. Sunumu ve teslimatı WhatsApp üzerinden netleştiririz.'}</p></>}</fieldset>;
+}
+
+export function ShopReviews({catalog,language}:{catalog:Catalog;language:Language}){
+ const reviews=catalog.reviews||[];if(!reviews.length)return null;
+ const en=language==='en';return <section className={styles.reviewSection} aria-labelledby="review-title"><span className="eyebrow">{en?'FROM YOUR SWEET BREAKS':'SİZİN TATLI MOLALARINIZDAN'}</span><h2 id="review-title">{en?'A few lovely words.':'Sizden gelen güzel sözler.'}</h2><div className={styles.reviews}>{reviews.map(r=><figure key={r.id}><span aria-label={`${r.rating}/5`}>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</span><blockquote>{r.text}</blockquote><figcaption>{r.name}<small><Check size={14}/>{en?'Verified delivered order':'Doğrulanmış, teslim edilmiş sipariş'}</small></figcaption></figure>)}</div></section>;
+}
+
+export function GroupOrders({catalog,ready,language}:{catalog:Catalog;ready:boolean;language:Language}){
+ const en=language==='en';const [busy,setBusy]=useState(false),[success,setSuccess]=useState(false),[error,setError]=useState('');
+ async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();if(busy)return;const f=new FormData(e.currentTarget);setBusy(true);setError('');try{await readJson(await fetch('/api/inquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(f))}));setSuccess(true);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ return <section className={styles.groupSection} id="ozel-siparis" aria-labelledby="group-title"><span className="eyebrow">{en?'MORE PEOPLE, MORE HAPPINESS':'PAYLAŞTIKÇA ÇOĞALAN MUTLULUK'}</span><h2 id="group-title">{en?'For your special days.':'Özel günlerine Pink Rose.'}</h2><p>{en?'For office treats, birthdays and events with 10 cookies or more, tell us your plans. We will discuss the flavours, date and price together.':'Ofis ikramı, doğum günü ve etkinlikler için 10 adet ve üzeri talebini paylaş. Çeşitleri, tarihi ve fiyatı birlikte netleştirelim.'}</p>{success?<div className="notice" role="status">{en?'Your enquiry is saved. Pink Rose will contact you; this is not a confirmed order.':'Talebin kaydedildi. Pink Rose seninle iletişime geçecek; bu işlem kesinleşmiş sipariş değildir.'}</div>:<details className={styles.groupForm}><summary>{en?'Tell us your plans':'Etkinliğini birlikte planlayalım'}</summary><form onSubmit={submit}><div className={styles.formGrid}><label>{en?'Your name':'Ad soyad'}<input name="customer" required minLength={2} maxLength={100} autoComplete="name"/></label><label>{en?'Mobile phone':'Cep telefonu'}<input name="phone" type="tel" required maxLength={25} autoComplete="tel"/></label><label>{en?'Occasion':'Etkinlik türü'}<select name="occasion">{['Ofis / kurumsal','Doğum günü','Etkinlik / davet','Diğer'].map((v,i)=><option key={v} value={v}>{en?['Office / corporate','Birthday','Event / celebration','Other'][i]:v}</option>)}</select></label><label>{en?'Approximate cookie quantity':'Yaklaşık kurabiye adedi'}<input name="quantity" type="number" min={10} max={10000} required step={1}/></label><label>{en?'Preferred date (optional)':'Tercih edilen tarih (isteğe bağlı)'}<input name="date" type="date" min={earliestOrderDate(leadDays(catalog.settings))}/></label></div><label>{en?'What do you have in mind?':'Aklındaki detaylar'}<textarea name="note" maxLength={500}/></label><div className={styles.honeypot} aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off"/></label></div><p className={styles.note}>{en?'Your details are used to discuss this enquiry. Price and availability are confirmed together.':'Bilgilerin bu talep için iletişimde kullanılır. Fiyat ve uygunluk görüşme sonrasında kesinleşir.'}</p>{error&&<p role="alert">{en?'Please check your details or try again later.':error}</p>}<button className="button" disabled={!ready||busy||catalog.settings.demo||catalog.settings.ordersPaused}>{busy?(en?'Saving…':'Kaydediliyor…'):(en?'Send enquiry':'Talebimi ilet')}</button></form></details>}</section>;
+}
