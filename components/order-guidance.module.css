@@ -3,11 +3,11 @@
 .dateFields{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px}
 .dateFields label{font-size:12px}
 .dates p{margin-top:12px;font-size:12px;line-height:1.6;color:#86525c}
-.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;padding:40px max(24px,6vw);background:#fff9fb;color:#a80000}.faq>.eyebrow,.faq>h2{grid-column:1/-1}.faq details{align-self:start;min-width:0}.detailLink{display:inline-block;font-size:14px;text-decoration:underline;margin:0 8px 20px}
+.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;padding:0 0 12px;background:transparent;color:#a80000}.faq>.eyebrow{display:none}.faq>h2{grid-column:1/-1}.faq details{align-self:start;min-width:0}.detailLink{display:inline-block;font-size:14px;text-decoration:underline;margin:0 8px 20px}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.16em}
-.faq h2{font:34px Georgia,serif;margin:10px 0 20px}
+.faq h2{font:28px Georgia,serif;margin:0 0 14px}
 .faq details{border-bottom:1px solid #ecc3d2}
-.faq summary{cursor:pointer;min-height:60px;padding:18px 8px;font-weight:600;font-size:16px;line-height:1.5}
+.faq summary{cursor:pointer;min-height:52px;padding:14px 0;font-weight:600;font-size:16px;line-height:1.5}
 .faq details p{max-width:850px;padding:0 8px 22px;color:#86525c;font-size:15px;line-height:1.8;white-space:pre-line}
 .faq summary:focus-visible{outline:3px solid #a80000;outline-offset:2px}
-@media(max-width:600px){.faq{grid-template-columns:1fr;padding:32px 20px}.faq h2{font-size:32px}.faq summary{font-size:14px}.faq details p{font-size:14px}.dateFields{grid-template-columns:1fr}}
+@media(max-width:600px){.faq{grid-template-columns:1fr;padding:0 0 12px}.faq h2{font-size:25px}.faq summary{font-size:14px}.faq details p{font-size:14px}.dateFields{grid-template-columns:1fr}}

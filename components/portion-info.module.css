@@ -10,3 +10,6 @@
 .boxWeight.boxWeight>strong{font-size:15px;line-height:1.4;font-family:inherit}
 .boxWeight>span{font-size:12px;color:#86525c}
 @media(max-width:700px){.intro{padding:18px}.intro>strong{font-size:16px}}
+
+/* Short portion guidance beside the menu, with details retained on product cards. */
+.intro{padding:0;margin:6px 0 14px;background:transparent;border-radius:0}.intro>strong{font-size:14px}.intro>p{font-size:12px;margin:3px 0 0}@media(max-width:700px){.intro>strong{font-size:12px}.intro>p{font-size:11px}}
