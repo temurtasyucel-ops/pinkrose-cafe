@@ -133,6 +133,10 @@ try:
  assert call('/api/insights',{'event':'product_view','productId':'cookie-1','quantity':1,'customer':'Must not persist'})[0]==204
  insight=next(r['data'] for r in records.values() if r['kind']=='insight')
  assert set(insight)=={'event','productId','quantity','day'}
+ for event in ['checkout_start','checkout_exit']:
+  assert call('/api/insights',{'event':event,'productId':'cookie-1','customer':'Must not persist','quantity':1})[0]==204
+  entry=next(r['data'] for r in records.values() if r['kind']=='insight' and r['data']['event']==event)
+  assert set(entry)=={'event','quantity','day'},entry
  assert call('/api/insights',{'event':'payment','quantity':1})[0]==400
  records['review-test']={'id':'review-test','kind':'review','data':{'id':'review-test','orderId':'private-id','name':'İpek Ş.','text':'Harika bir kurabiye.','rating':5,'published':True,'consent':True}}
  status,public=call('/api/catalog');assert status==200 and len(public['reviews'])==1

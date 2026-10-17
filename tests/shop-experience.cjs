@@ -26,3 +26,23 @@ assert.deepEqual(publicReview({id:'r1',name:'İpek Ş.',text:'Harika!',rating:5,
 const stats=insightSummary([{event:'product_view',productId:'cookie-1',quantity:1},{event:'cart_add',productId:'cookie-1',quantity:4},{event:'box_complete',quantity:4}]);
 assert.equal(stats.counts.cart_add,1);assert.equal(stats.products['cookie-1'].quantity,4);assert.equal(stats.counts.box_complete,1);
 console.log('PASS: mixed/cheaper box prices, changed thresholds, unavailable/non-box items, Istanbul date cutoff, optional gift and full summaries, review privacy and action-vs-quantity measurement.');
+
+const {previousBoxSelection,reviewPreviousBox}=load('lib/previous-box.ts');
+const historyCatalog={...c,packages:[{qty:2},{qty:4}]};
+assert.deepEqual(previousBoxSelection({'cookie-1':2,customer:'PRIVATE',recipient:'PRIVATE',price:1}),{'cookie-1':2});
+assert.equal(reviewPreviousBox(historyCatalog,null),null);
+const saved=reviewPreviousBox(historyCatalog,{'cookie-1':2});
+assert.deepEqual(saved,{target:2,selection:{'cookie-1':2},removedQty:0,changedSize:false});
+assert.equal(boxSelection({...historyCatalog,bulkPricing:{minQty:2,unitPrice:14000}},saved.selection,saved.target).total,28000);
+const lost=reviewPreviousBox({...historyCatalog,products:historyCatalog.products.map(p=>({...p,active:false}))},{'cookie-1':2});
+assert.deepEqual(lost.selection,{});assert.equal(lost.removedQty,2);assert.equal(lost.target,2);
+assert.equal(reviewPreviousBox(historyCatalog,{'cookie-1':1,'cookie-2':1}).removedQty,1);
+const smaller=reviewPreviousBox({...historyCatalog,packages:[{qty:2}]},{'cookie-1':4});
+assert.equal(smaller.target,2);assert.equal(smaller.changedSize,true);assert.equal(smaller.selection['cookie-1'],2);
+const {orderProgress}=load('lib/shop-insights.ts');
+const baseOrder={demo:false,created:'2026-10-16T21:30:00Z',total:30000,status:'Onay bekliyor'};
+const progress=orderProgress([baseOrder,{...baseOrder,status:'Onaylandı'},{...baseOrder,status:'Ödeme alındı'},{...baseOrder,status:'İptal',statusHistory:[{to:'Ödeme alındı'}]},{...baseOrder,status:'Teslim edildi'},{...baseOrder,demo:true,status:'Ödeme alındı'},{...baseOrder,created:'2026-10-16T20:30:00Z'}],'2026-10-17');
+assert.equal(progress.requests,5);assert.equal(progress.verified,3);assert.equal(progress.current['Onaylandı'],1);assert.equal(progress.current['İptal'],1);assert.equal(progress.activePaidTotal,60000);
+const funnel=insightSummary([{event:'checkout_start',quantity:1},{event:'checkout_start',quantity:1},{event:'checkout_exit',quantity:1}]);
+assert.equal(funnel.counts.checkout_start,2);assert.equal(funnel.counts.checkout_exit,1);
+console.log('PASS: private previous-box storage, unavailable replacements, changed box sizes/current prices, Istanbul order cohorts, verified-vs-legacy statuses, cancellations and anonymous form counts.');

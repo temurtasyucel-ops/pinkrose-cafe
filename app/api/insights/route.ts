@@ -9,7 +9,8 @@ export async function POST(req:Request){try{
  if(!await rateLimit(req,'insights',40))return new Response(null,{status:429});
  const b=await req.json();
  if(!insightEvents.includes(b.event)||!Number.isInteger(b.quantity)||b.quantity<1||b.quantity>50)return new Response(null,{status:400});
- const productId=typeof b.productId==='string'&&/^(cookie-\d+|[a-z0-9-]{36})$/.test(b.productId)?b.productId:undefined;
+ const productEvent=['product_view','cart_add'].includes(b.event);
+ const productId=productEvent&&typeof b.productId==='string'&&/^(cookie-\d+|[a-z0-9-]{36})$/.test(b.productId)?b.productId:undefined;
  if(['product_view','cart_add'].includes(b.event)&&!productId)return new Response(null,{status:400});
  const day=turkeyDate(),id='insight-'+day.replaceAll('-','')+'-'+crypto.randomUUID();
  const {error}=await service().from('records').insert({id,kind:'insight',data:{event:b.event,productId,quantity:b.quantity,day}});

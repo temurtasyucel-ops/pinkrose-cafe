@@ -120,3 +120,9 @@ Validation: `node --experimental-strip-types tests/order-calendar.mjs` covers pr
 ## Compact phone storefront
 
 `app/mobile-storefront.css` contains phone-only overrides, imported after the base styles. Homepage previews use a single column of photo/text rows, avoiding an orphan third tile. Full catalog cards remain two columns. Product names precede nutrition; ingredients, natural 4:5 photos, filling swipe controls and add actions remain available. The phone offer strip omits its duplicate box link; navigation and the fixed quick-order bar still provide it. Header, footer, shortcuts and quick-order spacing are reduced while interactive controls retain 44px heights. The changes were guided by supplied iPhone screenshots; physical-device validation remains separate from desktop browser QA.
+
+## Repeat boxes, early gifts and order stages
+
+The box builder remembers only the latest product IDs and quantities on the same device (`pinkrose-previous-box-v1`). Repeat opens a review dialog after refreshing the catalog; current availability, box sizes and prices apply, and missing varieties require replacements. It never submits an order automatically. Customers can forget the saved selection. Gift mode can be selected on the box page and persists in the same tab until the order is completed; recipient details remain in the order form.
+
+The experience panel reports anonymous checkout opens/exits separately from live order records and payment-verified statuses/history. These are event counts, not unique visitors or a linked conversion funnel. Cancelled orders are excluded from the current paid total. Existing order-history and record storage are reused; no migration is needed.
