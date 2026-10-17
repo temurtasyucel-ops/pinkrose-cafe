@@ -1,11 +1,15 @@
+import {useEffect,useState} from 'react';
+import {availableDates} from '@/lib/order-calendar';
 import type {Catalog} from '@/lib/types';
 import type {Language} from '@/lib/i18n';
 import {localContent} from '@/lib/i18n';
 import {earliestOrderDate,leadDays} from '@/lib/order-date';
 import styles from './order-guidance.module.css';
-export function DatePreference({catalog,language}:{catalog:Catalog;language:Language}){
- const en=language==='en',days=leadDays(catalog.settings),min=earliestOrderDate(days);
- return <fieldset className={styles.dates}><legend>{en?'Preferred date and time':'Tarih ve saat tercihi'}</legend><div className={styles.dateFields}><label>{en?'Date (optional)':'Tarih (isteğe bağlı)'}<input type="date" name="preferredDate" min={min}/></label><label>{en?'Time (optional)':'Saat (isteğe bağlı)'}<input type="time" name="preferredTime"/></label></div><p>{en?(days?`Please order at least ${days} ${days===1?'day':'days'} ahead. We will confirm the date and time on WhatsApp.`:'Choose your preferred date and time; we will confirm availability on WhatsApp.'):(days?`En az ${days} gün önceden sipariş verebilirsin. Kesin gün ve saati WhatsApp üzerinden birlikte netleştirelim.`:'Tarih ve saat tercihini seç; uygunluğu WhatsApp üzerinden birlikte netleştirelim.')}</p></fieldset>;
+export function DatePreference({catalog,language,quantity=1}:{catalog:Catalog;language:Language;quantity?:number}){
+ const en=language==='en',days=leadDays(catalog.settings),dates=availableDates(catalog.settings,catalog.calendar,quantity);
+ const [selected,setSelected]=useState('');
+ useEffect(()=>{if(selected&&!dates.includes(selected))setSelected('');},[selected,dates.join(',')]);
+ return <fieldset className={styles.dates}><legend>{en?'Preferred date and time':'Tarih ve saat tercihi'}</legend><div className={styles.dateFields}><label>{en?'Date':'Tarih'}<select name="preferredDate" required value={selected} onChange={e=>setSelected(e.target.value)}><option value="">{en?'Choose an available day':'Uygun bir gün seç'}</option>{dates.map(day=><option key={day} value={day}>{new Intl.DateTimeFormat(en?'en-GB':'tr-TR',{day:'numeric',month:'long',year:'numeric',weekday:'short',timeZone:'UTC'}).format(new Date(day+'T12:00:00Z'))}</option>)}</select></label><label>{en?'Time (optional)':'Saat (isteğe bağlı)'}<input type="time" name="preferredTime"/></label></div><p>{dates.length?(en?`Available days are shown for your basket. ${days?`Please allow at least ${days} days. `:''}We confirm the date and time together on WhatsApp.`:`Sepetindeki adede uygun günler gösterilir. ${days?`En az ${days} gün hazırlık süresi vardır. `:''}Kesin gün ve saati WhatsApp’ta birlikte netleştiririz.`):(en?'No suitable dates for this quantity. Reduce the quantity or contact us.':'Bu adet için uygun gün bulunmuyor. Adedi azaltabilir veya bizimle iletişime geçebilirsin.')}</p></fieldset>;
 }
 export function OrderQuestions({catalog,ready,language}:{catalog:Catalog;ready:boolean;language:Language}){
  if(!ready)return null;

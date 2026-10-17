@@ -3,6 +3,15 @@ import {defaultPaymentText} from './payment';
 import {realProducts} from './seed';
 export type Language='tr'|'en';
 export const english:Record<string,string>={
+ 'Bu gün siparişe kapalı. Lütfen başka bir gün seçin.':'Orders are closed for this day. Please choose another date.',
+ 'Seçtiğiniz gün için yeterli kapasite kalmadı. Lütfen başka bir gün veya daha az adet seçin.':'There is not enough capacity for this date. Please choose another day or reduce the quantity.',
+ 'Seçtiğiniz gün kapalı veya kapasitesi dolu. Lütfen başka bir gün seçin.':'This date is closed or fully booked. Please choose another day.',
+ 'Hazırlık süresine uygun bir teslim günü seçin.':'Choose a date that allows enough preparation time.',
+ 'Lütfen uygun bir teslim günü seçin.':'Please select an available date.',
+ 'Sipariş işlemi sürüyor. Lütfen aynı seçimle tekrar deneyin.':'Your order is being processed. Please retry with the same selection.',
+ 'Sipariş takvimi yüklenemedi. Lütfen tekrar deneyin.':'The order calendar could not be loaded. Please try again.',
+ 'Takvim aynı anda güncellendi. Lütfen tekrar deneyin.':'The calendar changed. Please try again.',
+
  'Hediye alıcısını, telefonunu ve en fazla 300 karakterlik notunu kontrol edin.':'Check the gift recipient, phone number and message (up to 300 characters).',
  'Hediye bilgilerini kontrol edin.':'Check the gift details.',
  'Geçerli tarih ve saat seçin.':'Choose a valid date and time.',

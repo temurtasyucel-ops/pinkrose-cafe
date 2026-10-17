@@ -1,3 +1,5 @@
+import {calendarState,reserveCalendar,settleCalendar} from '@/db/order-calendar';
+import {publicCalendar,orderBooking} from '@/lib/order-calendar';
 import {flavourDefaults,productAvailable} from '@/lib/shop-experience';
 import {publicReview} from '@/lib/shop-insights';
 import type {ShopReview,ShopInsight,GroupInquiry} from '@/lib/shop-insights';
@@ -37,7 +39,7 @@ export async function catalog(all=false):Promise<Catalog>{
   const {data:reviewRows,error:reviewError}=await service().from('records').select('data').eq('kind','review').eq('data->>published','true').limit(12);
   if(reviewError)console.error('Reviews unavailable:',reviewError.message);
   const reviews=(reviewRows||[]).map(r=>publicReview(r.data as ShopReview)).filter((r):r is NonNullable<typeof r>=>!!r);
-  return {reviews,...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
+  return {calendar:publicCalendar(await calendarState()),reviews,...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
 }
 export async function put(id:string,kind:string,data:unknown){
   const {error}=await service().from('records').upsert({id,kind,data},{onConflict:'id'});check(error);
@@ -58,8 +60,12 @@ async function changeOrder(id:string,change:(order:Order)=>Order){
  const client=service();
  const {data,error}=await client.from('orders').select('data').eq('id',id).maybeSingle();check(error);
  if(!data)throw Error('Sipariş bulunamadı.');
- const {data:updated,error:updateError}=await client.from('orders').update({data:change(data.data as Order)}).eq('id',id).eq('data',JSON.stringify(data.data)).select('id').maybeSingle();check(updateError);
- if(!updated)throw Error('Sipariş başka bir işlemle güncellendi. Yenileyip tekrar deneyin.');
+ const next=change(data.data as Order),before=orderBooking(data.data as Order),after=orderBooking(next),hold='hold:'+crypto.randomUUID();
+ if(after&&JSON.stringify(before)!==JSON.stringify(after))await reserveCalendar(hold,after);
+ try{
+  const {data:updated,error:updateError}=await client.from('orders').update({data:next}).eq('id',id).eq('data',JSON.stringify(data.data)).select('id').maybeSingle();check(updateError);
+  if(!updated)throw Error('Sipariş başka bir işlemle güncellendi. Yenileyip tekrar deneyin.');
+ }finally{await settleCalendar(hold,id);}
 }
 export async function updateStatus(id:string,status:string,expected:string){await changeOrder(id,o=>recordStatusChange(o,status,expected));}
 export async function updateDelivery(id:string,fee:number){await changeOrder(id,o=>deliveryQuote(o,fee));}
@@ -92,3 +98,5 @@ export async function getShopManagement(){
 export async function orderById(id:string):Promise<Order|null>{
  const {data,error}=await service().from('orders').select('data').eq('id',id).maybeSingle();check(error);return data?.data||null;
 }
+
+export async function ensureTracking(id:string){await changeOrder(id,o=>({...o,trackingToken:o.trackingToken||crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().replaceAll('-','')}));}

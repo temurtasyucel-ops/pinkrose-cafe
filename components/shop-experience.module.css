@@ -12,3 +12,5 @@
 
 /* Keep the heading, close control and price visible while only the flavour list scrolls. */
 .builder{display:flex!important;flex-direction:column;gap:12px;overflow:hidden;padding-top:30px!important}.builder>h2,.builder>[data-slot="dialog-title"]{padding-right:24px}.boxProducts{min-height:90px;overflow-y:auto;overscroll-behavior:contain;flex:1}.boxProgress{position:static;padding:4px 0}.chosen{max-height:90px;overflow-y:auto;flex-shrink:0}.builderFooter{position:static;padding:8px 0;flex-shrink:0}.builder>.note{margin-top:0;flex-shrink:0}.builder>button.text-link{flex-shrink:0}
+
+.boxSizes button strong{display:block;font-size:22px;font-weight:600;margin:8px 0}.boxSizes button small{display:block;line-height:1.6}

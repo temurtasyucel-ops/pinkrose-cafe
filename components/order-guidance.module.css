@@ -11,3 +11,5 @@
 .faq details p{max-width:850px;padding:0 8px 22px;color:#86525c;font-size:15px;line-height:1.8;white-space:pre-line}
 .faq summary:focus-visible{outline:3px solid #a80000;outline-offset:2px}
 @media(max-width:600px){.faq{grid-template-columns:1fr;padding:0 0 12px}.faq h2{font-size:25px}.faq summary{font-size:14px}.faq details p{font-size:14px}.dateFields{grid-template-columns:1fr}}
+
+.dateFields select{width:100%;min-height:46px;border:1px solid #e1b6c8;border-radius:8px;background:#fff9fb;color:#a80000;padding:10px;font:inherit}

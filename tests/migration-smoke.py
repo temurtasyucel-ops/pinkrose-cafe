@@ -1,5 +1,6 @@
 """Local HTTP smoke check against an isolated fake Supabase service; no real data."""
-import subprocess, os, time, json, threading, urllib.request, urllib.error, uuid
+import subprocess, os, time, json, threading, urllib.request, urllib.error, uuid, base64, datetime
+from concurrent.futures import ThreadPoolExecutor
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 records, orders = {}, {}
@@ -7,8 +8,11 @@ class Mock(BaseHTTPRequestHandler):
  def do_PATCH(self):
   data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
   query=parse_qs(urlparse(self.path).query); key=query['id'][0].removeprefix('eq.')
-  if key in records and records[key]['data']==json.loads(query['data'][0].removeprefix('eq.')): records[key].update(data)
-  self.out(None)
+  target=records if self.path.startswith('/rest/v1/records') else {row['id']:row for row in orders.values()}
+  row=target.get(key); updated=[]
+  if row and ('data' not in query or row['data']==json.loads(query['data'][0].removeprefix('eq.'))):
+   row.update(data); updated=[row]
+  self.out(updated[0] if len(updated)==1 and 'vnd.pgrst.object' in self.headers.get('Accept','') else updated)
  def log_message(self, *args): pass
  def out(self, data, status=200):
   self.send_response(status); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(json.dumps(data).encode())
@@ -16,12 +20,18 @@ class Mock(BaseHTTPRequestHandler):
   data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
   if self.path.startswith('/rest/v1/rpc/consume_rate_limit'): return self.out(True)
   if self.path.startswith('/rest/v1/records'):
-   for row in data if isinstance(data, list) else [data]: records.setdefault(row['id'], row)
+   for row in data if isinstance(data, list) else [data]:
+    if row['id'] in records:
+     if 'resolution=ignore-duplicates' in self.headers.get('Prefer',''): continue
+     if 'on_conflict' not in self.path:return self.out({'code':'23505','message':'duplicate'},409)
+    records[row['id']]=row
    return self.out(None, 201)
   if self.path.startswith('/rest/v1/orders'):
    orders.setdefault(data['request_key'], data); return self.out(None, 201)
   self.out({'error': 'unexpected'}, 500)
  def do_GET(self):
+  if self.path.startswith('/auth/v1/user'):return self.out({'id':'11111111-1111-4111-8111-111111111111','aud':'authenticated','role':'authenticated','email':'test@example.invalid','app_metadata':{},'user_metadata':{},'created_at':'2026-01-01T00:00:00Z'})
+  if self.path.startswith('/rest/v1/admin_users'):return self.out([{'user_id':'11111111-1111-4111-8111-111111111111'}])
   if self.path.startswith('/rest/v1/records'):
    q=parse_qs(urlparse(self.path).query); rows=list(records.values())
    for key in ['id','kind']:
@@ -31,16 +41,22 @@ class Mock(BaseHTTPRequestHandler):
    if q.get('data->>published')==['eq.true']: rows=[r for r in rows if r['data'].get('published') is True]
    return self.out(rows)
   if self.path.startswith('/rest/v1/orders'):
-   key=parse_qs(urlparse(self.path).query).get('request_key', [''])[0].removeprefix('eq.')
-   return self.out([orders[key]] if key in orders else [])
+   q=parse_qs(urlparse(self.path).query); rows=list(orders.values())
+   for key in ['id','request_key']:
+    if key in q:rows=[r for r in rows if r[key]==q[key][0].removeprefix('eq.')]
+   if 'data->>trackingToken' in q:rows=[r for r in rows if r['data'].get('trackingToken')==q['data->>trackingToken'][0].removeprefix('eq.')]
+   offset=int(q.get('offset',['0'])[0]); limit=int(q.get('limit',['1000'])[0]); return self.out(rows[offset:offset+limit])
   self.out({'error': 'unexpected'}, 500)
 mock=HTTPServer(('127.0.0.1',3102),Mock); threading.Thread(target=mock.serve_forever,daemon=True).start()
 env={**os.environ,'NEXT_PUBLIC_SUPABASE_URL':'http://127.0.0.1:3102','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY':'test-key','SUPABASE_SECRET_KEY':'test-secret','HTTP_PROXY':'','HTTPS_PROXY':'','http_proxy':'','https_proxy':''}
 log=open('/tmp/pinkrose-migration-test.log','w')
 p=subprocess.Popen(['node','node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port','3101'],env=env,stdout=log,stderr=log)
 base='http://127.0.0.1:3101'
-def call(path,data=None,origin=base):
- req=urllib.request.Request(base+path,data=json.dumps(data).encode() if data is not None else None,headers={'Content-Type':'application/json','Origin':origin})
+def encoded(v):return base64.urlsafe_b64encode(json.dumps(v).encode()).decode().rstrip('=')
+token=encoded({'alg':'HS256','typ':'JWT'})+'.'+encoded({'sub':'11111111-1111-4111-8111-111111111111','aud':'authenticated','role':'authenticated','exp':int(time.time())+3600,'iat':int(time.time()),'iss':'http://127.0.0.1:3102/auth/v1'})+'.c2lnbmF0dXJl'
+cookie='sb-127-auth-token=base64-'+encoded({'access_token':token,'refresh_token':'test-only','expires_at':int(time.time())+3600,'token_type':'bearer','user':{'id':'11111111-1111-4111-8111-111111111111'}})
+def call(path,data=None,origin=base,admin=False):
+ req=urllib.request.Request(base+path,data=json.dumps(data).encode() if data is not None else None,headers={'Content-Type':'application/json','Origin':origin,**({'Cookie':cookie} if admin else {})})
  try: r=urllib.request.urlopen(req,timeout=15)
  except urllib.error.HTTPError as e: r=e
  body=r.read(); return r.status,json.loads(body) if r.headers.get('Content-Type','').startswith('application/json') else body
@@ -196,5 +212,58 @@ try:
  assert call('/api/orders',{**english_body,'language':'tr'})[1]==en
  print('PASS: English orders persist their language and full WhatsApp details; retry keeps the original order.')
  print('PASS: paused live/demo requests, no insert while paused, previous retry, reopening, live/demo mode, retry after mode switch, inactive product rejection, catalog, server pricing, idempotency, delivery quotes, city validation, CSRF, anonymous admin/upload rejection.')
+ # New calendar, capacity, admin and customer tracking integration.
+ records['cookie-1']['data']['active']=True
+ records['settings']['data']['demo']=False
+ records['settings']['data']['ordersPaused']=False
+ orders.clear(); records.pop('order-calendar',None)
+ status,admin_state=call('/api/admin',admin=True);assert status==200,(status,admin_state)
+ today=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))).date()
+ day=(today+datetime.timedelta(days=3)).isoformat(); next_day=(today+datetime.timedelta(days=4)).isoformat(); closed=(today+datetime.timedelta(days=5)).isoformat()
+ def configure(limit,closed_days):
+  revision=call('/api/catalog')[1]['calendar']['revision']
+  return call('/api/admin',{'kind':'calendar','data':{'config':{'dailyLimit':limit,'closedDates':closed_days},'expected':revision}},admin=True)
+ assert configure(4,[closed])[0]==200
+ # No undated or closed-day bypass, including direct API requests.
+ request={**body,'date':'','preferredDate':day,'preferredTime':'15:00','key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':2}]}
+ assert call('/api/orders',{**request,'preferredDate':''})[0]==400
+ assert call('/api/orders',{**request,'preferredDate':closed})[0]==400
+ assert call('/api/orders',{k:v for k,v in request.items() if k not in ['preferredDate','preferredTime']})[0]==400
+ # Concurrent requests compete for the last places through compare-and-swap.
+ requests=[{**request,'key':str(uuid.uuid4())} for _ in range(4)]
+ with ThreadPoolExecutor(max_workers=4) as pool: results=list(pool.map(lambda b:call('/api/orders',b),requests))
+ assert sum(status==200 for status,_ in results)==2,results
+ assert call('/api/catalog')[1]['calendar']['booked'][day]==4
+ success=next(result for status,result in results if status==200)
+ path=success['trackingPath']; tracking_token=path.split('/')[-1]
+ assert len(tracking_token)==64 and call(path)[0]==200
+ assert b'noindex' in call(path)[1]
+ assert path.encode() not in call('/sitemap.xml')[1]
+ assert call('/api/order-status',{'token':'PR-TEST'})[0]==404
+ assert call('/api/order-status',{'token':'f'*64})[0]==404
+ status,tracked=call('/api/order-status',{'token':tracking_token});assert status==200
+ assert set(tracked)=={'number','status','confirmedAt','preferredDate','preferredTimeLabel','type','city','items','total','deliveryFeePending','demo','language'}
+ assert not any(v in json.dumps(tracked) for v in ['Test Customer','05060584705','Hediye'])
+ assert call('/api/order-status',{'token':tracking_token},origin='https://other.example')[0]==400
+ saved=next(r['data'] for r in orders.values() if r['data']['number']==success['number'])
+ saved_key=saved['id']
+ assert call('/api/orders',{**request,'key':saved_key})[1]==success
+ assert call('/api/catalog')[1]['calendar']['booked'][day]==4
+ assert call('/api/admin',{'kind':'status','data':{'id':saved_key,'status':'İptal','expected':'Onay bekliyor'}},admin=True)[0]==200
+ assert call('/api/catalog')[1]['calendar']['booked'][day]==2
+ assert call('/api/order-status',{'token':tracking_token})[1]['status']=='İptal'
+ # Reopening reserves capacity; moving transfers it and closed dates reject.
+ assert call('/api/admin',{'kind':'status','data':{'id':saved_key,'status':'Onay bekliyor','expected':'İptal'}},admin=True)[0]==200
+ assert call('/api/admin',{'kind':'schedule','data':{'id':saved_key,'value':closed+'T15:00','expected':''}},admin=True)[0]==400
+ assert call('/api/admin',{'kind':'schedule','data':{'id':saved_key,'value':next_day+'T15:00','expected':''}},admin=True)[0]==200
+ totals=call('/api/catalog')[1]['calendar']['booked'];assert totals[day]==2 and totals[next_day]==2,totals
+ tracked=call('/api/order-status',{'token':tracking_token})[1];assert tracked['confirmedAt'].startswith(next_day)
+ # Unavailable date rejection doesn't mutate order; stale revisions cannot overwrite.
+ assert call('/api/admin',{'kind':'calendar','data':{'config':{'dailyLimit':1,'closedDates':[]},'expected':-1}},admin=True)[0]==400
+ assert configure(1,[])[0]==200
+ assert call('/api/orders',{**request,'key':str(uuid.uuid4())})[0]==400
+ assert call('/api/admin',{'kind':'calendar-repair','data':{}},admin=True)[0]==200
+ assert 'bookings' not in call('/api/catalog')[1]['calendar']
+ print('PASS: authenticated calendar configuration; simultaneous admissions capped; closed/undated bypass blocked; retry, cancel, reopen, reschedule and stale revision checks; private tracking projection, invalid tokens, CSRF and noindex.')
 finally:
  p.terminate(); p.wait(timeout=10); mock.shutdown(); log.close()

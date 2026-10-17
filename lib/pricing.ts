@@ -29,3 +29,11 @@ export function priceBasket(c:Catalog,items:{id:string;price:number;qty:number}[
  const packageDiscount=count>=rule.minQty?cookies.reduce((n,i)=>n+Math.max(0,i.price-rule.unitPrice)*i.qty,0):0;
  return {subtotal,packageDiscount};
 }
+
+export function boxPriceRange(c:Catalog,qty:number){
+ const products=c.products.filter(p=>p.active&&p.stock&&boxEligible(p));
+ if(!products.length)return null;
+ const prices=products.map(p=>qty>=c.bulkPricing.minQty?Math.min(p.price,c.bulkPricing.unitPrice):p.price);
+ const min=Math.min(...prices),max=Math.max(...prices);
+ return {min:qty*min,max:qty*max,unitMin:min,unitMax:max};
+}
