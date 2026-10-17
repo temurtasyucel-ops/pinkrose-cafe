@@ -5,3 +5,6 @@
 .banner .link{display:inline-flex;align-items:center;justify-content:center;gap:16px;flex-shrink:0;padding:12px 18px;background:#a80000;color:#fff9fb;border-radius:8px;font-size:13px;font-weight:600;min-height:44px}
 .banner .link:hover{background:#8c0000}
 @media(max-width:600px){.banner{padding:12px 20px;align-items:center;gap:12px;flex-wrap:wrap}.copy p{font-size:14px}.banner .link{padding:8px 12px;min-height:44px}.copy small{font-size:11px}}
+
+/* One compact message on phones; the box action is already in quick navigation. */
+@media(max-width:700px){.banner{padding:10px 5%;gap:0}.copy p{font-size:12px;line-height:1.5;margin:0 0 3px}.copy small{font-size:10px;line-height:1.5}.banner .link{display:none}}

@@ -21,7 +21,7 @@ export function trackShop(event:InsightEvent,productId?:string,quantity=1){
 export function FlavourNotes({product,language}:{product:Product;language:Language}){
  const text=product.flavourNotes?.trim();if(!text)return null;
  const label=language==='en'?product.english?.flavourNotes||flavourEnglish[text]||text:text;
- return <p className={styles.flavours}>{label}</p>;
+ return <p className={styles.flavours+' product-flavours'}>{label}</p>;
 }
 export function ProductLabels({product,language}:{product:Product;language:Language}){
  const en=language==='en';

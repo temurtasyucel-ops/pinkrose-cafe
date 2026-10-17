@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./storefront-pages.css";
+import "./mobile-storefront.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.pinkrosecafe.com.tr'),

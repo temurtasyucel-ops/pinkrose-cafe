@@ -7,7 +7,7 @@ type Common={catalog:Catalog;ready:boolean;language:Language;money:(price:number
 export function ProductOffer({catalog,ready,language,money,product}:{product:Product}&Common){
  if(!ready||!product.active||!product.stock||!boxEligible(product)||product.price<=catalog.bulkPricing.unitPrice)return null;
  const {minQty,unitPrice}=catalog.bulkPricing;
- return <small className={styles.label}>{language==='en'?`${minQty} or more: ${money(unitPrice)} / cookie`:`${minQty} adet ve üzeri: ${money(unitPrice)} / adet`}</small>;
+ return <small className={styles.label+' product-offer'}>{language==='en'?`${minQty} or more: ${money(unitPrice)} / cookie`:`${minQty} adet ve üzeri: ${money(unitPrice)} / adet`}</small>;
 }
 export function CartOffer({catalog,ready,language,money,cart,onExplore}:Common&{cart:Record<string,number>;onExplore:()=>void}){
  const offer=ready?basketOffer(catalog,cart):null;

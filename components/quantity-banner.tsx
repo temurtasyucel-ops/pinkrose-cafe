@@ -16,6 +16,6 @@ export default function QuantityBanner({catalog,ready,language,money}:{catalog:C
       </p>
       <small>{en?'Mix your favourites. Applies to box-eligible varieties.':'Çeşitleri dilediğin gibi karıştır. Kutuya dahil çeşitlerde geçerlidir.'}</small>
     </div>
-    <Link href="/kutunu-olustur" className={styles.link}>{en?'Build your box':'Kutunu oluştur'} <span aria-hidden="true">↗</span></Link>
+    <Link href="/kutunu-olustur" className={styles.link}>{en?'Build your box':'Kutunu oluştur'} <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17 17 7M7 7h10v10"/></svg></Link>
   </section>;
 }
