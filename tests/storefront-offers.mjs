@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {basketOffer,seasonalProducts} from '../lib/pricing.ts';
+import {basketOffer,seasonalProducts,basketLines,priceBasket} from '../lib/pricing.ts';
 const p={id:'cookie-1',active:true,stock:true,boxEligible:true,price:17000};
 const c={products:[p,{...p,id:'cookie-2'},{...p,id:'extra',boxEligible:false}],bulkPricing:{minQty:2,unitPrice:15000}};
 assert.equal(basketOffer(c,{}),null);
@@ -17,3 +17,14 @@ assert.deepEqual(basketOffer({...c,bulkPricing:{minQty:1,unitPrice:15000}},{'coo
 assert.equal(seasonalProducts(c).length,0);
 assert.deepEqual(seasonalProducts({...c,products:[{...p,seasonal:true},{...p,seasonal:true,stock:false},{...p,seasonal:true,active:false}]}),[{...p,seasonal:true}]);
 console.log('PASS: quantity nudges follow mixed baskets, exclusions, cheaper items, availability and editable rules; seasonal announcements require active stocked selections.');
+
+const catalog={...c,products:[...c.products,cheap]};
+const mixed=[{id:p.id,price:17000,qty:1},{id:cheap.id,price:12000,qty:1},{id:'extra',price:5000,qty:2}];
+const lines=basketLines(catalog,mixed);
+assert.deepEqual(lines.map(i=>[i.unitPrice,i.lineTotal]),[[15000,15000],[12000,12000],[5000,10000]]);
+const totals=priceBasket(catalog,mixed);
+assert.equal(lines.reduce((n,i)=>n+i.lineTotal,0),totals.subtotal-totals.packageDiscount);
+assert.equal(basketLines(catalog,[mixed[0]])[0].unitPrice,17000);
+assert.equal(basketLines({...catalog,bulkPricing:{minQty:3,unitPrice:14000}},mixed)[0].unitPrice,17000);
+assert.equal(basketLines({...catalog,bulkPricing:{minQty:2,unitPrice:14000}},mixed)[0].unitPrice,14000);
+console.log('PASS: basket line prices match totals across mixed varieties, cheaper items, excluded products and editable thresholds.');

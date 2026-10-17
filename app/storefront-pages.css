@@ -5,6 +5,27 @@
 @media(max-width:400px){.site-header .wordmark{font-size:22px}.site-header .language-switch button{min-width:29px;padding-inline:6px}.site-header .cart-button{padding:8px;gap:4px}.header-actions{gap:5px}.mobile-menu-toggle{min-width:38px}.shop-shortcuts{grid-template-columns:minmax(0,1fr)}}
 
 /* Shared basket controls do not open a sheet while customers mix flavours. */
+.cart-item-copy{min-width:0}
+.cart-unit-price{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;line-height:1.5}
+.cart-unit-price del{font-size:12px;opacity:.75}
+.cart-line-total{display:block;font-size:12px;font-weight:600;line-height:1.5;margin-top:4px}
+.cart-item .quantity{flex-shrink:0;gap:2px}
+.cart-item .quantity button{min-width:44px;min-height:44px;align-items:center;justify-content:center;padding:8px}
+.cart-item .quantity span{min-width:18px;text-align:center;font-variant-numeric:tabular-nums}
+.fulfilment-choices .fulfilment-error{font-size:13px;color:#a80000;font-weight:600;margin:8px 0}
+.checkout-basket{border:1px solid #ecc3d2;border-radius:9px;background:#fff3f8}
+.checkout-basket>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;min-height:60px;cursor:pointer;list-style:none}
+.checkout-basket>summary::-webkit-details-marker{display:none}
+.checkout-basket>summary:focus-visible{outline:2px solid #a80000;outline-offset:2px}
+.checkout-basket>summary b{display:block;font-size:14px;line-height:1.5}
+.checkout-basket>summary small{display:block;font-size:12px;line-height:1.5;color:#86525c;margin-top:3px}
+.checkout-basket-toggle{font-size:12px;text-decoration:underline;text-underline-offset:3px;flex-shrink:0}
+.checkout-basket-toggle::after{content:' +'}
+.checkout-basket[open] .checkout-basket-toggle::after{content:' −'}
+.checkout-basket-content{display:grid;gap:16px;padding:0 14px 14px}
+.checkout-basket-content .cart-items{margin-top:0}
+.checkout-basket-content .cart-item{gap:8px;padding:14px 0}
+@media(max-width:380px){.checkout-basket>summary{flex-wrap:wrap;gap:5px}.checkout-basket-toggle{margin-left:auto}.checkout-basket-content{padding-inline:10px}.cart-item h4{font-size:19px}.cart-item .quantity button{min-width:44px}}
 .product-quantity{display:inline-flex;align-items:center;justify-content:space-between;min-height:44px;max-width:100%;border:1px solid #a8000040;border-radius:6px;overflow:hidden;background:#fff3f8;flex-shrink:0}
 .product-quantity button{display:grid;place-items:center;width:44px;min-width:44px;min-height:44px;padding:0;border:0;border-radius:0;background:transparent;color:#a80000}
 .product-quantity button:hover:not(:disabled){background:#ffd8ea}

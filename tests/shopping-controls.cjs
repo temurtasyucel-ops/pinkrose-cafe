@@ -31,3 +31,15 @@ const products=[{id:'cookie-1',boxEligible:true,weight:'120–150 g'}];
 assert.ok(render(Weight,{products,cart:{'cookie-1':4}}).includes('480–600'));
 assert.equal(render(Weight,{products,cart:{}}),'');
 console.log('PASS: inline quantity callbacks, ceiling, availability/removal, busy controls, English labels, live/demo next steps and selected basket weight.');
+
+const BasketItems=load('components/basket-items.tsx').default,Review=load('components/basket-review.tsx').default;
+const catalog={products:[{id:'cookie-1',name:'Gülpembe',active:true,stock:true,price:17000,boxEligible:true}],bulkPricing:{minQty:2,unitPrice:15000},settings:{}};
+const itemProps={catalog,cart:{'cookie-1':2},language:'tr',money:n=>String(n/100),busy:false,ready:true,onIncrease:()=>{},onDecrease:()=>{}};
+const basketHtml=render(BasketItems,itemProps);assert.ok(basketHtml.includes('<del>170</del>')&&basketHtml.includes('150')&&basketHtml.includes('300'));
+const pausedItems=BasketItems({...itemProps,catalog:{...catalog,settings:{ordersPaused:true}}});
+const pausedRow=pausedItems.props.children[0],buttons=pausedRow.props.children[1].props.children;
+assert.equal(buttons[0].props.disabled,false);assert.equal(buttons[2].props.disabled,true);
+const review={compact:true,count:2,total:'Ürün toplamı: 300',deliveryNote:'Teslimat ücreti ayrıca netleşir',language:'tr',children:React.createElement('p',null,'Basket contents')};
+const summaryHtml=render(Review,review);assert.ok(summaryHtml.includes('<details')&&!summaryHtml.includes(' open=""'));assert.ok(summaryHtml.includes('300')&&summaryHtml.includes('Basket contents'));
+assert.ok(!render(Review,{...review,compact:false}).includes('<details'));
+console.log('PASS: discounted basket units and line totals, paused additions, available removal and closed checkout summary.');

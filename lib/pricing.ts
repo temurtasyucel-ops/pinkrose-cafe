@@ -20,13 +20,16 @@ export function validBulkPricing(value:unknown):value is Catalog['bulkPricing']{
  const v=value as Catalog['bulkPricing']|null;
  return !!v&&Number.isSafeInteger(v.minQty)&&v.minQty>=1&&v.minQty<=100&&Number.isSafeInteger(v.unitPrice)&&v.unitPrice>0&&v.unitPrice<=10000000;
 }
-export function priceBasket(c:Catalog,items:{id:string;price:number;qty:number}[]){
+export function basketLines(c:Catalog,items:{id:string;price:number;qty:number}[]){
  const eligible=new Set(c.products.filter(boxEligible).map(p=>p.id));
- const cookies=items.filter(i=>eligible.has(i.id));
- const subtotal=items.reduce((n,i)=>n+i.price*i.qty,0);
- const count=cookies.reduce((n,i)=>n+i.qty,0);
+ const count=items.filter(i=>eligible.has(i.id)).reduce((n,i)=>n+i.qty,0);
  const rule=c.bulkPricing;
- const packageDiscount=count>=rule.minQty?cookies.reduce((n,i)=>n+Math.max(0,i.price-rule.unitPrice)*i.qty,0):0;
+ return items.map(item=>{const unitPrice=count>=rule.minQty&&eligible.has(item.id)?Math.min(item.price,rule.unitPrice):item.price;return {...item,unitPrice,lineTotal:unitPrice*item.qty};});
+}
+export function priceBasket(c:Catalog,items:{id:string;price:number;qty:number}[]){
+ const lines=basketLines(c,items);
+ const subtotal=lines.reduce((n,i)=>n+i.price*i.qty,0);
+ const packageDiscount=lines.reduce((n,i)=>n+(i.price-i.unitPrice)*i.qty,0);
  return {subtotal,packageDiscount};
 }
 
