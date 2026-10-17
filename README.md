@@ -95,3 +95,11 @@ The panel's customer experience tab manages reviews and anonymous action counts.
 Interaction records contain only action, optional product ID, quantity and Istanbul date. They do not store customer information, visitor IDs or cookies. Do Not Track is respected. Counts are events, not unique people or confirmed sales. The panel displays at most 5,000 events from the last 30 calendar days; sampling cleanup removes interaction records older than 35 days. Real order records are never removed by this cleanup.
 
 New records use the existing private `records` table with `review`, `inquiry` and `insight` kinds; no SQL migration is required. Public catalog reads are scoped to catalog kinds and explicitly projected published reviews.
+
+### Shopping pages
+
+The public shop uses `/kurabiyeler`, `/kutunu-olustur`, `/kutlama-etkinlik`, `/hikayemiz` and `/kurabiyeler/[slug]`. Every page reads the same catalog, prices, availability, reviews and quantity policy. Product links have stable slugs for the original nine recipes; renamed new products retain ID-based alias resolution and redirect to their canonical address. Inactive products return 404 and leave the dynamic sitemap. Product share metadata uses the current panel name, description and photo.
+
+The homepage shows up to three active featured products in panel order, filling remaining slots from active products. It does not claim these are best sellers. Full product descriptions, ingredients, allergens and care remain on product pages. Taste filters use recipe text and do not assert allergy suitability. The event page reuses the private inquiry API and existing statuses; choosing an occasion preselects that field without creating an order or reserving a date.
+
+The desktop/mobile navigation links to the same pages. The basket continues using `pinkrose-cart-v1` across page changes, with storage-event synchronization between tabs. Prices are recalculated from the current catalog and checked again by the order API. All new pages support the existing Turkish/English preference. Photo/video additions remain deferred.

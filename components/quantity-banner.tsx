@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type {Catalog} from '@/lib/types';
 import type {Language} from '@/lib/i18n';
 import {quantityOffer} from '@/lib/pricing';
@@ -15,6 +16,6 @@ export default function QuantityBanner({catalog,ready,language,money}:{catalog:C
       </p>
       <small>{en?'Mix your favourites. Applies to box-eligible varieties.':'Çeşitleri dilediğin gibi karıştır. Kutuya dahil çeşitlerde geçerlidir.'}</small>
     </div>
-    <a href="#kutunu-olustur" className={styles.link}>{en?'Build your box':'Kutunu oluştur'} <span aria-hidden="true">↗</span></a>
+    <Link href="/kutunu-olustur" className={styles.link}>{en?'Build your box':'Kutunu oluştur'} <span aria-hidden="true">↗</span></Link>
   </section>;
 }

@@ -59,6 +59,23 @@ try:
  assert call('/api/upload',{})[0]==401
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==9,(status,c)
 
+ # Dedicated routes use the same live catalog and expose their own canonical metadata.
+ for route in ['/kurabiyeler','/kutunu-olustur','/kutlama-etkinlik','/hikayemiz']:
+  status,page=call(route); assert status==200,(route,status)
+  assert ('https://www.pinkrosecafe.com.tr'+route).encode() in page
+ home=call('/')[1]; assert home.count(b'<article class="product"')==3
+ menu=call('/kurabiyeler')[1]; assert menu.count(b'<article class="product"')==9
+ status,detail=call('/kurabiyeler/kara-sevda'); assert status==200
+ assert b'kara-sevda-dis.webp' in detail and b'kara-sevda-ic.webp' in detail and b'170' in detail
+ assert call('/kurabiyeler/olmayan-urun')[0]==404
+ assert call('/kurabiyeler/pamuk-prenses')[0]==200 # follows canonical redirect
+ records['cookie-3']['data']['active']=False
+ assert call('/kurabiyeler/kara-sevda')[0]==404
+ assert b'/kurabiyeler/kara-sevda' not in call('/sitemap.xml')[1]
+ records['cookie-3']['data']['active']=True
+ assert b'/kurabiyeler/kara-sevda' in call('/sitemap.xml')[1]
+ print('PASS: dedicated routes and canonical metadata, three home previews, full menu, product photos, aliases, 404 and inactive-product sitemap exclusion.')
+
  # Both new flavours are orderable without photos and share the editable discount.
  by_id={product['id']:product for product in c['products']}
  for id,name in [('cookie-8','Şirine'),('cookie-9','Gönülçelen')]:

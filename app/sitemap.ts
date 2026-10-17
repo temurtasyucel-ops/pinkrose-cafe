@@ -1,2 +1,10 @@
 import type {MetadataRoute} from 'next';
-export default function sitemap():MetadataRoute.Sitemap{return [{url:'https://www.pinkrosecafe.com.tr',changeFrequency:'weekly',priority:1},{url:'https://www.pinkrosecafe.com.tr/linkler',changeFrequency:'monthly',priority:0.5}];}
+import {catalog} from '@/db/store';
+import {siteOrigin,productPath} from '@/lib/storefront-pages';
+export const dynamic='force-dynamic';
+export default async function sitemap():Promise<MetadataRoute.Sitemap>{
+ const pages=['','/kurabiyeler','/kutunu-olustur','/kutlama-etkinlik','/hikayemiz','/linkler'];
+ const result:MetadataRoute.Sitemap=pages.map(path=>({url:siteOrigin+path,changeFrequency:'weekly',priority:path?0.8:1}));
+ try{const c=await catalog();for(const p of c.products)result.push({url:siteOrigin+productPath(p),changeFrequency:'weekly',priority:0.7});}catch{}
+ return result;
+}
