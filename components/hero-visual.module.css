@@ -15,3 +15,5 @@
 @media(max-width:700px){.frame{padding:8px!important;min-height:0!important;max-height:230px}.single{max-height:210px;height:auto!important}.collection{gap:0}.collection>.eyebrow,.collection>.foot,.photos figcaption{display:none}.photos{gap:4px;padding:12px 0}.photos figure{border-radius:30px 30px 6px 6px}.photos figure:nth-child(1),.photos figure:nth-child(3){transform:translateY(8px)}.photos figure:nth-child(2){transform:translateY(-8px)}}
 
 @media(max-width:700px){.frame{padding:0!important;max-height:210px}.single{max-height:200px}}
+
+@media(min-width:701px){.frame{min-height:0!important;align-self:center}.single{height:auto!important;max-height:320px;width:100%!important}.collection{gap:12px}.photos{padding:12px 0;gap:6px}.photos figcaption{font-size:12px;padding:9px 3px}.photos figure:nth-child(1),.photos figure:nth-child(3){transform:translateY(8px)}.photos figure:nth-child(2){transform:translateY(-8px)}.foot{font-size:11px}.eyebrow{font-size:10px}}
