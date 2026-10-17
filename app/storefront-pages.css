@@ -4,6 +4,28 @@
 @media(max-width:700px){.site-header{padding:10px 5%;min-height:70px}.header-actions{gap:7px}.home-service-note{align-items:flex-start;font-size:11px;padding:10px 5%}.home-service-note svg{margin-top:2px}.menu-heading h1{font-size:29px}.menu-heading h2{font-size:25px}.menu-heading{flex-wrap:wrap}.quick-order-info summary{font-size:12px}.flavour-filters{gap:7px;flex-wrap:wrap}.flavour-filters button{font-size:12px;padding:8px 10px;min-height:44px}.filter-note{font-size:11px;line-height:1.6}.shop-shortcuts{padding:0 5% 26px;gap:12px}.shop-shortcuts>a{padding:16px;gap:8px}.shop-shortcuts h2{font-size:21px}.shop-shortcuts p{font-size:12px;line-height:1.6}.shop-shortcuts>a>span:last-child{font-size:12px}.dedicated-page{padding:26px 5% 32px}.page-intro{margin-bottom:22px}.page-intro h1{font-size:30px}.page-intro p{font-size:14px}.occasion-options{gap:8px}.occasion-options button{font-size:12px;padding:10px 12px;flex:1;min-width:90px}.product-page{padding:24px 5% 34px}.product-page-grid{grid-template-columns:minmax(0,1fr);gap:22px;margin-top:20px}.product-page-copy h1{font-size:33px}.product-page-copy{gap:12px}.product-page-photos{gap:10px}.product-page-placeholder{min-height:160px}.footer-site-links{width:100%;order:3;font-size:12px;margin-top:10px}.footer-top{gap:22px}.box-portion-guide{padding:12px 0 22px}}
 @media(max-width:400px){.site-header .wordmark{font-size:22px}.site-header .language-switch button{min-width:29px;padding-inline:6px}.site-header .cart-button{padding:8px;gap:4px}.header-actions{gap:5px}.mobile-menu-toggle{min-width:38px}.shop-shortcuts{grid-template-columns:minmax(0,1fr)}}
 
+/* Shared basket controls do not open a sheet while customers mix flavours. */
+.product-quantity{display:inline-flex;align-items:center;justify-content:space-between;min-height:44px;max-width:100%;border:1px solid #a8000040;border-radius:6px;overflow:hidden;background:#fff3f8;flex-shrink:0}
+.product-quantity button{display:grid;place-items:center;width:44px;min-width:44px;min-height:44px;padding:0;border:0;border-radius:0;background:transparent;color:#a80000}
+.product-quantity button:hover:not(:disabled){background:#ffd8ea}
+.product-quantity output{display:block;min-width:26px;padding:0 5px;text-align:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.product-quantity button:focus-visible,.product-page-actions button:focus-visible{outline:2px solid #a80000;outline-offset:-3px}
+.product-page-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px}
+.product-page-actions .add-button{min-height:44px;background:#a80000;color:#fff9fb;padding:12px 20px;font-size:14px}
+.product-page-actions>.text-link{min-height:44px}
+.cart-weight{display:grid;gap:5px;padding:12px 14px;border:1px solid #ecc3d2;border-radius:8px;background:#fff0f7}
+.cart-weight strong{font-size:14px;line-height:1.5}
+.cart-weight small{font-size:12px;line-height:1.5;color:#86525c}
+.success{padding-top:24px;gap:18px}
+.order-next-steps{width:100%;text-align:left;padding:16px;border:1px solid #ecc3d2;border-radius:10px;background:#fff0f7}
+.order-next-steps h3{font-size:21px;margin-bottom:12px}
+.order-next-steps ol{display:grid;gap:13px;list-style:decimal;padding-left:22px}
+.order-next-steps li::marker{font-weight:700;color:#a80000}
+.order-next-steps b{display:block;font-size:14px;line-height:1.5}
+.order-next-steps span{display:block;font-size:13px;line-height:1.6;color:#86525c;margin-top:2px}
+.success .order-next-steps p{margin-top:12px;font-size:12px;max-width:none}
+@media(max-width:700px){.product .product-quantity{width:100%}.product-bottom .add-button{min-height:46px}.cart-sheet .quantity button{min-width:44px;min-height:44px;align-items:center;justify-content:center;padding:8px}.product-page-actions .product-quantity{min-width:150px}}
+
 /* Price and calendar information stay close to the purchasing action. */
 .earliest-date{font-size:13px;line-height:1.7;color:#86525c;margin:16px 0}.earliest-date b{color:#a80000}.earliest-date small{display:block;font-size:12px}.calendar-admin form{max-width:700px}.calendar-admin form>button{margin:8px 12px 8px 0}.closed-days{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.calendar-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}.calendar-days>div{border:1px solid #edc4d5;padding:12px;border-radius:8px;display:grid;gap:8px;font-size:13px}.calendar-admin h3{margin-top:20px}
 

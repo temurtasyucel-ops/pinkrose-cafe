@@ -1,4 +1,5 @@
 import type {Product} from './types';
+import {boxEligible} from './pricing.ts';
 const originalCalories:Record<string,number>={'cookie-1':570,'cookie-2':490,'cookie-3':460,'cookie-4':510,'cookie-5':570,'cookie-6':620,'cookie-7':570};
 export function validCalories(value:unknown):value is number{return typeof value==='number'&&Number.isInteger(value)&&value>0&&value<=10000;}
 export function calorieEstimate(product:Pick<Product,'id'|'calories'>):number|null{
@@ -16,4 +17,12 @@ export function boxWeight(products:Product[],qty:number):[number,number]|null{
  const ranges=eligible.map(p=>weightRange(p.weight));
  if(!eligible.length||ranges.some(r=>!r)||!Number.isInteger(qty)||qty<1)return null;
  return [Math.round(Math.min(...ranges.map(r=>r![0]))*qty),Math.round(Math.max(...ranges.map(r=>r![1]))*qty)];
+}
+
+export function cartWeight(products:Product[],cart:Record<string,number>){
+ const selected=products.filter(p=>boxEligible(p)&&Number.isInteger(cart[p.id])&&cart[p.id]>0);
+ if(!selected.length)return null;
+ let quantity=0,min=0,max=0;
+ for(const p of selected){const range=weightRange(p.weight);if(!range)return null;const qty=cart[p.id];quantity+=qty;min+=range[0]*qty;max+=range[1]*qty;}
+ return {quantity,min:Math.round(min),max:Math.round(max)};
 }

@@ -46,3 +46,12 @@ assert.equal(progress.requests,5);assert.equal(progress.verified,3);assert.equal
 const funnel=insightSummary([{event:'checkout_start',quantity:1},{event:'checkout_start',quantity:1},{event:'checkout_exit',quantity:1}]);
 assert.equal(funnel.counts.checkout_start,2);assert.equal(funnel.counts.checkout_exit,1);
 console.log('PASS: private previous-box storage, unavailable replacements, changed box sizes/current prices, Istanbul order cohorts, verified-vs-legacy statuses, cancellations and anonymous form counts.');
+
+const {cartWeight}=load('lib/nutrition.ts');
+const weights=[{id:'cookie-1',boxEligible:true,weight:'120–150 g'},{id:'cookie-8',boxEligible:true,weight:'130 g'},{id:'drink',boxEligible:false,weight:'250 g'}];
+assert.deepEqual(cartWeight(weights,{'cookie-1':2,'cookie-8':2,drink:4}),{quantity:4,min:500,max:560});
+assert.deepEqual(cartWeight(weights,{'cookie-1':8}),{quantity:8,min:960,max:1200});
+assert.equal(cartWeight(weights,{drink:2}),null);
+assert.equal(cartWeight(weights,{'cookie-1':0}),null);
+assert.equal(cartWeight([...weights,{id:'missing',boxEligible:true,weight:''}],{'cookie-1':2,missing:1}),null);
+console.log('PASS: selection-specific cookie weights, mixed weights, drink exclusion and missing-weight suppression.');

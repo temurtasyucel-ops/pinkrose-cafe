@@ -123,6 +123,8 @@ Validation: `node --experimental-strip-types tests/order-calendar.mjs` covers pr
 
 ## Repeat boxes, early gifts and order stages
 
+Product cards and product detail share the current basket quantity through inline add/remove controls, with a 50-per-product ceiling and unavailable/paused increment protection. Adding does not force the basket open. The basket sums the actual selected eligible-cookie weight ranges; drinks and packaging are excluded, and unknown selected cookie weights suppress the estimate. After a live request is saved, the success screen explains WhatsApp confirmation, bank-transfer verification and preparation alongside the existing private tracking link. Demo success does not show live payment instructions. No payment is collected online.
+
 The box builder remembers only the latest product IDs and quantities on the same device (`pinkrose-previous-box-v1`). Repeat opens a review dialog after refreshing the catalog; current availability, box sizes and prices apply, and missing varieties require replacements. It never submits an order automatically. Customers can forget the saved selection. Gift mode can be selected on the box page and persists in the same tab until the order is completed; recipient details remain in the order form.
 
 The experience panel reports anonymous checkout opens/exits separately from live order records and payment-verified statuses/history. These are event counts, not unique visitors or a linked conversion funnel. Cancelled orders are excluded from the current paid total. Existing order-history and record storage are reused; no migration is needed.
