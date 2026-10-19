@@ -68,10 +68,7 @@ export function GiftFields({language,checked,onChange}:{language:Language;checke
  return <fieldset className={styles.gift}><legend><Gift size={18}/>{en?'A sweet gift':'Tatlı bir hediye'}</legend><label className={styles.check}><input type="checkbox" checked={checked} onChange={e=>onChange(e.target.checked)}/>{en?'I am sending this as a gift':'Hediye gönderiyorum'}</label>{checked&&<><label>{en?'Recipient name':'Alıcının adı soyadı'}<input name="recipient" required minLength={2} maxLength={100} autoComplete="off"/></label><label>{en?'Recipient phone (optional)':'Alıcı telefonu (isteğe bağlı)'}<input name="recipientPhone" type="tel" maxLength={25} autoComplete="off"/></label><label>{en?'Gift card message (optional)':'Hediye kartı notu (isteğe bağlı)'}<textarea name="giftMessage" maxLength={300}/></label><p>{en?'Your card note is saved with the order. We will confirm the presentation and delivery on WhatsApp.':'Kart notun siparişle birlikte kaydedilir. Sunumu ve teslimatı WhatsApp üzerinden netleştiririz.'}</p></>}</fieldset>;
 }
 
-export function ShopReviews({catalog,language}:{catalog:Catalog;language:Language}){
- const reviews=(catalog.reviews||[]).slice(0,3);if(!reviews.length)return null;
- const en=language==='en';return <section className={styles.reviewSection} aria-labelledby="review-title"><span className="eyebrow">{en?'FROM YOUR SWEET BREAKS':'SİZİN TATLI MOLALARINIZDAN'}</span><h2 id="review-title">{en?'A few lovely words.':'Sizden gelen güzel sözler.'}</h2><div className={styles.reviews}>{reviews.map(r=><figure key={r.id}><span aria-label={`${r.rating}/5`}>{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</span><blockquote>{r.text}</blockquote><figcaption>{r.name}<small><Check size={14}/>{en?'Verified delivered order':'Doğrulanmış, teslim edilmiş sipariş'}</small></figcaption></figure>)}</div></section>;
-}
+export {default as ShopReviews} from './shop-reviews';
 
 export function GroupOrders({catalog,ready,language,expanded=false,occasion,onOccasionChange}:{catalog:Catalog;ready:boolean;language:Language;expanded?:boolean;occasion?:string;onOccasionChange?:(value:string)=>void}){
  const [chosenOccasion,setChosenOccasion]=useState(occasion||'Ofis / kurumsal');
