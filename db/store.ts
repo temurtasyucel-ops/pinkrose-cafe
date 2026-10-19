@@ -1,4 +1,5 @@
 import {calendarState,reserveCalendar,settleCalendar} from '@/db/order-calendar';
+import {ServiceFailure,logFailure} from '@/lib/diagnostics';
 import {publicCalendar,orderBooking} from '@/lib/order-calendar';
 import {flavourDefaults,productAvailable} from '@/lib/shop-experience';
 import {publicReview} from '@/lib/shop-insights';
@@ -12,7 +13,7 @@ import {defaultBulkPricing,validBulkPricing} from '@/lib/pricing';
 import {seed} from '@/lib/seed';
 import type {Catalog,Order,Product,Campaign} from '@/lib/types';
 
-function check(error:{message:string}|null){if(error){console.error('Database:',error.message);throw Error('Veri işlemi tamamlanamadı. Lütfen tekrar deneyin.');}}
+function check(error:{message:string;code?:string}|null){if(error)throw new ServiceFailure('Veri işlemi tamamlanamadı. Lütfen tekrar deneyin.',error.code);}
 export async function initialize(){
   const rows=[
     {id:'settings',kind:'settings',data:seed.settings},
@@ -37,7 +38,7 @@ export async function catalog(all=false):Promise<Catalog>{
     check(cleanupError);
   }
   const {data:reviewRows,error:reviewError}=await service().from('records').select('data').eq('kind','review').eq('data->>published','true').limit(12);
-  if(reviewError)console.error('Reviews unavailable:',reviewError.message);
+  if(reviewError)logFailure('catalog','reviews',reviewError,503);
   const reviews=(reviewRows||[]).map(r=>publicReview(r.data as ShopReview)).filter((r):r is NonNullable<typeof r>=>!!r);
   return {calendar:publicCalendar(await calendarState()),reviews,...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
 }

@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 records, orders = {}, {}
+faults={'order_save':False}
 class Mock(BaseHTTPRequestHandler):
  def do_PATCH(self):
   data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
@@ -17,6 +18,9 @@ class Mock(BaseHTTPRequestHandler):
  def out(self, data, status=200):
   self.send_response(status); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(json.dumps(data).encode())
  def do_POST(self):
+  if self.path.startswith('/storage/v1/object/'):
+   self.rfile.read(int(self.headers.get('Content-Length','0')))
+   return self.out({'statusCode':'500','error':'StorageError','message':'PRIVATE-STORAGE-BACKEND-DETAIL'},500)
   data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
   if self.path.startswith('/rest/v1/rpc/consume_rate_limit'): return self.out(True)
   if self.path.startswith('/rest/v1/records'):
@@ -27,6 +31,7 @@ class Mock(BaseHTTPRequestHandler):
     records[row['id']]=row
    return self.out(None, 201)
   if self.path.startswith('/rest/v1/orders'):
+   if faults['order_save']:return self.out({'code':'23503','message':'PRIVATE-DIAGNOSTIC-CUSTOMER-TOKEN'},500)
    orders.setdefault(data['request_key'], data); return self.out(None, 201)
   self.out({'error': 'unexpected'}, 500)
  def do_GET(self):
@@ -104,6 +109,23 @@ try:
  assert 'ceviz' in by_id['cookie-9']['ingredients'] and 'Elmalı tarçınlı dolgu' in by_id['cookie-9']['ingredients']
  new_order={'key':str(uuid.uuid4()),'customer':'New Flavour Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-8','qty':1},{'id':'cookie-9','qty':1}]}
  status,new=call('/api/orders',new_order); assert status==200 and new['total']==30000,(status,new)
+ # Current clients reject stale reviewed prices; existing request keys still return their saved result.
+ before_quote=len(orders)
+ status,stale=call('/api/orders',{**new_order,'key':str(uuid.uuid4()),'quote':'stale-pricing'})
+ assert status==409 and len(orders)==before_quote and stale['reference'].startswith('PRERR-'),(status,stale)
+ assert call('/api/orders',{**new_order,'quote':'stale-pricing'})[1]==new
+ live_catalog=call('/api/catalog')[1]
+ quote_items=[[i['id'],i['qty'],next(p['price'] for p in live_catalog['products'] if p['id']==i['id']),True] for i in sorted(new_order['items'],key=lambda i:i['id'])]
+ quote=json.dumps({'items':quote_items,'bulk':live_catalog['bulkPricing'],'campaign':0,'delivery':[False,0],'demo':live_catalog['settings']['demo']},ensure_ascii=False,separators=(',',':'))
+ retry_key=str(uuid.uuid4()); retry_order={**new_order,'key':retry_key,'quote':quote}
+ faults['order_save']=True
+ status,failed=call('/api/orders',retry_order)
+ assert status==503 and retry_key not in orders and failed['reference'].startswith('PRERR-'),(status,failed)
+ assert 'PRIVATE-DIAGNOSTIC' not in json.dumps(failed)
+ faults['order_save']=False
+ status,retried=call('/api/orders',retry_order); assert status==200,(status,retried)
+ assert call('/api/orders',{**retry_order,'quote':'changed-after-save'})[1]==retried
+ print('PASS: stale quote blocks inserts, diagnostic reference hides database details, and retries preserve the saved order.')
  assert all(name in new['whatsappMessage'] for name in ['Şirine','Gönülçelen'])
  mixed_order={**new_order,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':1},{'id':'cookie-8','qty':1}]}
  assert call('/api/orders',mixed_order)[1]['total']==30000
@@ -269,5 +291,19 @@ try:
  assert call('/api/admin',{'kind':'calendar-repair','data':{}},admin=True)[0]==200
  assert 'bookings' not in call('/api/catalog')[1]['calendar']
  print('PASS: authenticated calendar configuration; simultaneous admissions capped; closed/undated bypass blocked; retry, cancel, reopen, reschedule and stale revision checks; private tracking projection, invalid tokens, CSRF and noindex.')
+ # Only the fake storage endpoint is used; no production files are created.
+ boundary='pinkrose-local-test'
+ image=b'\x89PNG\r\n\x1a\n'
+ multipart=('--'+boundary+'\r\nContent-Disposition: form-data; name="file"; filename="private-name.png"\r\nContent-Type: image/png\r\n\r\n').encode()+image+('\r\n--'+boundary+'--\r\n').encode()
+ req=urllib.request.Request(base+'/api/upload',data=multipart,headers={'Content-Type':'multipart/form-data; boundary='+boundary,'Origin':base,'Cookie':cookie})
+ try: upload_result=urllib.request.urlopen(req,timeout=15)
+ except urllib.error.HTTPError as e: upload_result=e
+ upload_error=json.loads(upload_result.read())
+ assert upload_result.status==503 and upload_error['reference'].startswith('PRERR-'),upload_error
+ log.flush()
+ with open('/tmp/pinkrose-migration-test.log') as diagnostic_log: diagnostic_text=diagnostic_log.read()
+ assert 'PRIVATE-DIAGNOSTIC-CUSTOMER-TOKEN' not in diagnostic_text and 'PRIVATE-STORAGE-BACKEND-DETAIL' not in diagnostic_text and 'private-name.png' not in diagnostic_text
+ assert failed['reference'] in diagnostic_text and upload_error['reference'] in diagnostic_text
+ print('PASS: upload and order failures correlate with sanitized logs without private filenames or backend messages.')
 finally:
  p.terminate(); p.wait(timeout=10); mock.shutdown(); log.close()

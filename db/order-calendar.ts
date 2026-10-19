@@ -1,10 +1,11 @@
 import 'server-only';
+import {ServiceFailure} from '@/lib/diagnostics';
 import {service} from '@/lib/supabase/service';
 import {emptyCalendar,cleanCalendarConfig,holdBooking,orderBooking,type CalendarState,type CalendarBooking} from '@/lib/order-calendar';
 import type {Order} from '@/lib/types';
 
 const recordId='order-calendar';
-function check(error:{message:string}|null){if(error){console.error('Calendar:',error.message);throw Error('Sipariş takvimi yüklenemedi. Lütfen tekrar deneyin.');}}
+function check(error:{message:string;code?:string}|null){if(error)throw new ServiceFailure('Sipariş takvimi yüklenemedi. Lütfen tekrar deneyin.',error.code);}
 async function allOrders(){
  const orders:Order[]=[];
  for(let from=0;;from+=1000){const {data,error}=await service().from('orders').select('data').order('id').range(from,from+999);check(error);orders.push(...(data||[]).map(r=>r.data as Order));if((data||[]).length<1000)return orders;}

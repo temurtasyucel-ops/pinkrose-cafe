@@ -123,6 +123,16 @@ Validation: `node --experimental-strip-types tests/order-calendar.mjs` covers pr
 
 ## Repeat boxes, early gifts and order stages
 
+### Basket changes and daily operations
+
+The cart keeps a public pricing snapshot (product IDs/names/prices, quantity rule, campaign rate and delivery/mode conditions) beside its ID/quantity storage; it contains no customer or recipient fields. Opening the basket, returning to a visible tab, the visible minute interval and order preflight refresh the catalog. Closed/missing/expired items are removed with a notice, remaining choices are preserved and price/terms changes require review. Notices persist in session storage until acknowledged. A `quote` fingerprint is checked again by the order API before booking/inserting; older clients remain compatible. Quote changes are excluded from retry identity, and an already saved request key still wins over changed pricing.
+
+The panel opens on **Günlük işler**, using the existing last 500 order records. Counts cover pending confirmation/payment, today's/tomorrow's confirmed dates, earlier delivery days and paid orders without a date. Demo/cancelled/delivered orders are excluded as appropriate. Dates use Europe/Istanbul; customer preferences are not promoted to confirmed dates. The overview refreshes every 30 seconds while visible and opens the existing order detail dialog.
+
+### Failure references
+
+Order, upload, catalog and admin failures return an opaque `PRERR-…` reference. `readJson` includes it in the user-visible error. Server runtime logs use a structured `operation_failed` event with scope, stage, HTTP status, safe error type/code and the same reference. Raw exceptions, request bodies, customer fields, request keys, tracking credentials and filenames are not logged by these paths. Database/calendar/rate-limit failures are wrapped before reaching the routes. In Vercel runtime logs, search the reference to locate the failing stage; retention follows the hosting plan. This adds correlation, not a separate monitoring service or outbound alerts. Tests use isolated fake database/storage services and create no production orders or files.
+
 Published customer reviews are no longer limited to three records. The homepage uses the installed Embla carousel with three visible desktop cards and an 87%-width phone card so the next review is visible. Manual arrows, position dots, swipe/drag and keyboard arrows/Home/End share the same positions; there is no autoplay or looping. Controls disappear when all reviews fit, and reduced-motion preferences disable animated scrolling. Review content and publication/consent rules are unchanged.
 
 Basket lines show the quantity-adjusted unit price and line total from the same calculation used by `priceBasket`; cheaper products are never increased. Campaign discounts remain separate at the total. Customers explicitly choose collection or delivery before opening the form; no delivery fee is assumed before selection. Checkout folds the full editable basket into a closed summary so contact/date fields appear sooner, while details remain accessible without unmounting the form. Increment controls also respect pauses and current product availability.

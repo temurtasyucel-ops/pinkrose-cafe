@@ -1,0 +1,10 @@
+'use client';
+import {useState} from 'react';
+import type {Order} from '@/lib/types';
+import {dailyWork} from '@/lib/daily-work';
+import {scheduleLabel} from '@/lib/order-planning';
+const labels={approval:'Onay bekleyen',payment:'Ödeme bekleyen',today:'Bugün teslim',tomorrow:'Yarın teslim',overdue:'Günü geçmiş teslimatlar',undated:'Ödeme alındı, tarih eksik'};
+export default function DailyWork({orders,updatedAt,onOpen,onOrders}:{orders:Order[];updatedAt:string;onOpen:(o:Order)=>void;onOrders:()=>void}){
+ const work=dailyWork(orders),[selected,setSelected]=useState<keyof typeof labels>(()=>(['overdue','today','approval','payment','tomorrow','undated'] as const).find(key=>work[key].length)||'approval');
+ return <section className="daily-work" aria-labelledby="daily-work-title"><div className="panel-heading"><h2 id="daily-work-title">Günlük bekleyen işler</h2><button type="button" className="outline-button" onClick={onOrders}>Tüm siparişler →</button></div><p>Canlı talepler ve kesinleşmiş teslim zamanları. Bir sipariş birden fazla grupta görünebilir.</p><div className="daily-work-counts">{(Object.keys(labels) as (keyof typeof labels)[]).map(key=><button type="button" key={key} aria-pressed={selected===key} onClick={()=>setSelected(key)}><span>{labels[key]}</span><b>{work[key].length}</b></button>)}</div><div className="daily-work-list" aria-live="polite"><h3>{labels[selected]}</h3>{work[selected].length?work[selected].map(o=><button type="button" key={o.id} onClick={()=>onOpen(o)}><span><b>{o.number} · {o.customer}</b><small>{scheduleLabel(o.confirmedAt)||'Kesin teslim zamanı atanmadı'} · {o.type}{o.city&&' / '+o.city}</small></span><span>{o.status==='Yeni'?'Onay bekliyor':o.status} ↗</span></button>):<p>Bu grupta bekleyen canlı sipariş yok.</p>}</div><p className="small-note">Son 500 sipariş · Türkiye saati · {updatedAt&&'Son yenileme: '+new Date(updatedAt).toLocaleTimeString('tr-TR',{timeZone:'Europe/Istanbul'})}. Bu görünüm açıkken 30 saniyede bir yenilenir. Müşterinin tarih tercihi kesin teslim zamanı sayılmaz.</p></section>;
+}

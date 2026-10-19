@@ -32,6 +32,7 @@ assert.equal(filterOrders([o],'','Tümü','Deneme').length,0);
 for(const phone of ['0506 058 47 05','5060584705','+90 506 058 47 05'])assert.equal(new URL(customerWhatsApp({...o,phone})).pathname,'/905060584705');
 await assert.rejects(readJson(new Response('<html>',{status:500})),/İşlem tamamlanamadı/);
 await assert.rejects(readJson(Response.json({error:'Yetki yok'},{status:403})),/Yetki yok/);
+await assert.rejects(readJson(Response.json({error:'Tekrar deneyin.',reference:'PRERR-123456ABCDEF'},{status:503})),/Hata kodu: PRERR-123456ABCDEF/);
 console.log('PASS: cart, retry keys, pricing validation, quantity discounts, quotes, filters, WhatsApp and HTTP errors.');
 
 const pumpkin='11111111-1111-4111-8111-111111111111';
