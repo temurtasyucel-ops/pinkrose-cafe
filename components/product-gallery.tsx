@@ -6,6 +6,7 @@ import {Carousel,CarouselContent,CarouselItem,type CarouselApi} from '@/componen
 import type {Product} from '@/lib/types';
 
 import {Language,translate} from '@/lib/i18n';
+import StorefrontImage from './storefront-image';
 export default function ProductGallery({product,tone,onInspect,language='tr'}:{product:Product;tone:number;onInspect:()=>void;language?:Language}){
  const t=(text:string)=>translate(text,language);
  const [api,setApi]=useState<CarouselApi>();
@@ -22,7 +23,7 @@ export default function ProductGallery({product,tone,onInspect,language='tr'}:{p
   <div className={'product-photo gallery-frame tone-'+tone}>
    {photos.length?<CarouselContent className="gallery-track">{photos.map((photo,i)=><CarouselItem key={photo.src} className="gallery-slide" aria-hidden={i!==selected} aria-label={`${i+1} / ${photos.length} · ${photo.label}`}>
     <button type="button" className="gallery-image-button" onClick={e=>{if(!e.defaultPrevented)onInspect();}} aria-label={product.name+' '+photo.label.toLocaleLowerCase('tr-TR')+t(" fotoğrafı; ürün detayını aç")} tabIndex={i===selected?0:-1}>
-     <img src={photo.src} alt={product.name+' · '+photo.label} loading="lazy" draggable={false}/>
+     <StorefrontImage src={photo.src} alt={product.name+' · '+photo.label} width={1200} height={1500} sizes="(max-width: 700px) 80vw, (max-width: 1200px) 42vw, 480px" loading="lazy" draggable={false}/>
     </button>
    </CarouselItem>)}</CarouselContent>:<button className="gallery-image-button gallery-placeholder" type="button" onClick={onInspect} aria-label={product.name+t(" ürününü incele")}><span className="product-initial">{product.name.split(' ').map(w=>w[0]).join('')}</span><small>{t("Fotoğraf yakında")}</small></button>}
    {product.featured&&<span className="badge">{t("Pink Rose seçkisi")}</span>}
