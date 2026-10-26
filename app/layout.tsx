@@ -40,9 +40,14 @@ export const metadata: Metadata = {
 
 const localBusinessSchema = {
   "@context": "https://schema.org",
-  "@type": "Bakery",
+  "@type": ["Bakery", "Organization"],
+  "@id": `${siteUrl}/#organization`,
   name: "Pink Rose Cafe",
   url: siteUrl,
+  founder: {
+    "@type": "Person",
+    name: "Arife Betül Boztepe",
+  },
   image: `${siteUrl}/products/gulpembe-dis.webp`,
   description: siteDescription,
   telephone: "+905060584705",
@@ -59,6 +64,13 @@ const localBusinessSchema = {
     { "@type": "City", name: "İzmir" },
   ],
   sameAs: ["https://www.instagram.com/pinkrosecafe.tr/"],
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: "+905060584705",
+    contactType: "customer service",
+    areaServed: ["Manisa", "İzmir"],
+    availableLanguage: ["Turkish"],
+  },
 };
 
 export default function RootLayout({
