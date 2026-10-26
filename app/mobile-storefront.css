@@ -196,7 +196,7 @@ footer .wordmark { color: #fff0f6; }
 }
 .mobile-order-bar .button { min-height: 46px; }
 @media (min-width: 701px) {
-  .site-header { padding-inline: clamp(5%, calc((100vw - 1320px) / 2), 9%); }
+  .site-header { padding-inline: clamp(24px, 5vw, 80px); }
   .hero { min-height: 600px; }
   .product-info { padding-inline: 8px; }
 }
