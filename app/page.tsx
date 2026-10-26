@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Storefront from "./storefront";
 import { catalog } from "@/db/store";
 
-const title = "El Yapımı Cookie ve Kurabiye | Pink Rose Cafe";
+const title = "Manisa'da El Yapımı Cookie ve Kurabiye | Pink Rose Cafe";
 const description =
-  "Manisa'da Callebaut Belçika çikolatası ve %100 yayık tereyağıyla hazırlanan Pink Rose kurabiyelerini keşfet. Ücretsiz gel-al ve Manisa / İzmir teslimatı.";
+  "Manisa'da Callebaut Belçika çikolatası ve %100 yayık tereyağıyla hazırlanan el yapımı cookie çeşitlerini keşfet. Ücretsiz gel-al, Manisa ve İzmir'e ücretli teslimat.";
 const siteUrl = "https://www.pinkrosecafe.com.tr";
+const socialImage = "/products/gulpembe-dis.webp";
 
 export const metadata: Metadata = {
   title,
@@ -16,13 +17,13 @@ export const metadata: Metadata = {
     description,
     url: siteUrl,
     type: "website",
-    images: [{ url: "/products/gulpembe-dis.webp", alt: "Pink Rose Gülpembe kurabiyesi" }],
+    images: [{ url: socialImage, alt: "Pink Rose Gülpembe el yapımı kurabiyesi" }],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: ["/products/gulpembe-dis.webp"],
+    images: [socialImage],
   },
 };
 
