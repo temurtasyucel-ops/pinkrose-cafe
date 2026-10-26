@@ -105,7 +105,7 @@ useEffect(()=>{if(page==='product'&&selectedProduct&&viewedProduct.current!==sel
 useEffect(()=>{setCategory('Tümü');setFlavour('all');setOpen(false);changeCheckout(false);},[page,productId]);
 useEffect(()=>{const sync=(event:StorageEvent)=>{if(event.key===previousBoxKey){try{setPreviousBox(previousBoxSelection(JSON.parse(event.newValue||'{}')));}catch{}}if(event.key==='pinkrose-cart-v1'){try{const saved=cleanCart(JSON.parse(event.newValue||'{}'));cartRuntime.current.cart=saved;try{cartRuntime.current.snapshot=cleanCartSnapshot(JSON.parse(localStorage.getItem(cartSnapshotKey)||'null'));}catch{}setCart(saved);void load();}catch{}}};window.addEventListener('storage',sync);return()=>window.removeEventListener('storage',sync);},[]);
 const shownProducts=page==='home'?homeSelection(data.products):data.products.filter(p=>(category==='Tümü'||p.category===category)&&matchesFlavour(p,flavour));
-const paused=ready&&!!data.settings.ordersPaused,whatsappDigits=digitsOnly(String(data.settings.whatsapp||''));
+const paused=ready&&!!data.settings.ordersPaused,whatsappDigits=digitsOnly(String(data.settings.whatsapp||'')),phoneHref='tel:+'+whatsappDigits,whatsappHref='https://wa.me/'+whatsappDigits;
 const pauseMessage=setting('pauseMessage')||t("Şu an yeni sipariş alamıyoruz. Lütfen daha sonra tekrar deneyin.");
 const live=data.campaigns.filter(liveCampaign),discountPct=Math.max(0,...live.map(c=>c.discount)),items=data.products.filter(p=>cart[p.id]>0),subtotal=items.reduce((n,p)=>n+p.price*cart[p.id],0),packageDiscount=priceBasket(data,items.map(p=>({id:p.id,price:p.price,qty:cart[p.id]}))).packageDiscount,campaignDiscount=Math.round((subtotal-packageDiscount)*discountPct/100),discount=packageDiscount+campaignDiscount,deliveryPending=fulfilmentChosen&&type==='Teslimat'&&!!data.settings.deliveryQuoted,delivery=fulfilmentChosen&&type==='Teslimat'&&!deliveryPending?data.settings.deliveryFee:0,total=subtotal-discount+delivery,count=items.reduce((n,p)=>n+cart[p.id],0);
 useEffect(()=>{if(!count&&checkout)changeCheckout(false);},[count,checkout]);
@@ -144,7 +144,32 @@ return <><Toaster theme="light" position="top-center"/>{ready&&data.settings.dem
 {page==='story'&&<section className="dedicated-page story-page section" id="story"><div className="page-intro"><span className="eyebrow">{t('BİZİM HİKÂYEMİZ')}</span><h1>{t('Sevdiğimiz şeyi,')}{' '}{t('sizinle paylaşıyoruz.')}</h1></div><p>{t('Pink Rose Cafe, Manisa’da ev mutfağında başlayan bir kurabiye hikâyesi. Kurucu şefimiz Arife Betül Boztepe’nin hazırladığı tatlar, küçük molalara eşlik etmek için burada.')}</p><h2>{language==='en'?'Our choice of ingredients':'Malzeme tercihimiz'}</h2><p>{language==='en'?'We prepare our cookies with Callebaut Belgian chocolate and 100% churned butter. Each variety has its own filling and flavour; you can find the ingredients and allergens on its product page.':'Kurabiyelerimizi Callebaut Belçika çikolatası ve %100 yayık tereyağıyla hazırlıyoruz. Her çeşidin dolgusu ve lezzeti farklı; içerik ve alerjen bilgilerini ürün sayfasında görebilirsin.'}</p><h2>{language==='en'?'Prepared for your order':'Siparişine özel hazırlık'}</h2><p>{setting('preparationText')}</p><p>{setting('paymentText')}</p><Link className="button" href="/kurabiyeler">{language==='en'?'Find your favourite':'Favori kurabiyeni bul'}</Link></section>}
 {page==='product'&&(selectedProduct?<ProductDetail product={selectedProduct} catalog={data} ready={ready} language={language} money={money} quantity={cart[selectedProduct.id]||0} cartLoaded={cartLoaded} busy={busy} onAdd={()=>add(selectedProduct.id,1,!cart[selectedProduct.id])} onRemove={()=>remove(selectedProduct.id)} onCart={()=>{changeCheckout(false);setOpen(true);}}/>:<p className="notice catalog-error">{language==='en'?'Product information is loading.':'Ürün bilgileri yükleniyor.'}</p>)}
 {page==='cookies'&&<div className="site-information"><OrderQuestions catalog={data} ready={ready} language={language}/></div>}
-</main><footer><div className="footer-top"><Link className="wordmark" href="/">Pink Rose<span>CAFE</span></Link><div className="footer-site-links"><Link href="/kurabiyeler">{t('Kurabiyelerimiz')}</Link><Link href="/kutunu-olustur">{language==='en'?'Build a box':'Kutunu oluştur'}</Link><Link href="/kutlama-etkinlik">{language==='en'?'Celebrations & events':'Kutlama & Etkinlik'}</Link><Link href="/hikayemiz">{t('Hikâyemiz')}</Link><Link href="/kurabiyeler#order-questions">{language==='en'?'Ordering & delivery':'Sipariş ve teslimat'}</Link></div><div className="footer-contact"><a href={data.settings.instagram} target="_blank" rel="noreferrer">Instagram</a>{whatsappDigits&&<><a href={'tel:+'+whatsappDigits}>{language==='en'?'Call · ':'Ara · '}{formatPhoneForDisplay(data.settings.whatsapp)}</a><a href={'https://wa.me/'+whatsappDigits} target="_blank" rel="noreferrer">WhatsApp · {formatPhoneForDisplay(data.settings.whatsapp)}</a></></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Pink Rose Cafe · Manisa</span>{ready&&data.settings.demo&&<span>{t('Önizleme sürümü')}</span>}</div></footer>
+</main>
+<footer>
+  <div className="footer-top">
+    <Link className="wordmark" href="/">Pink Rose<span>CAFE</span></Link>
+    <div className="footer-site-links">
+      <Link href="/kurabiyeler">{t('Kurabiyelerimiz')}</Link>
+      <Link href="/kutunu-olustur">{language==='en'?'Build a box':'Kutunu oluştur'}</Link>
+      <Link href="/kutlama-etkinlik">{language==='en'?'Celebrations & events':'Kutlama & Etkinlik'}</Link>
+      <Link href="/hikayemiz">{t('Hikâyemiz')}</Link>
+      <Link href="/kurabiyeler#order-questions">{language==='en'?'Ordering & delivery':'Sipariş ve teslimat'}</Link>
+    </div>
+    <div className="footer-contact">
+      <a href={data.settings.instagram} target="_blank" rel="noreferrer">Instagram</a>
+      {whatsappDigits ? (
+        <>
+          <a href={phoneHref}>{language==='en'?'Call · ':'Ara · '}{formatPhoneForDisplay(data.settings.whatsapp)}</a>
+          <a href={whatsappHref} target="_blank" rel="noreferrer">WhatsApp · {formatPhoneForDisplay(data.settings.whatsapp)}</a>
+        </>
+      ) : null}
+    </div>
+  </div>
+  <div className="footer-bottom">
+    <span>© {new Date().getFullYear()} Pink Rose Cafe · Manisa</span>
+    {ready && data.settings.demo ? <span>{t('Önizleme sürümü')}</span> : null}
+  </div>
+</footer>
 {!open&&!success&&<nav className="mobile-order-bar" aria-label={language==='en'?'Quick order':'Hızlı sipariş'}>{count>0?<><Link href="/kurabiyeler" className="mobile-more">{language==='en'?'Add more':'Ürün ekle'}</Link><button className="button" onClick={()=>{changeCheckout(false);setOpen(true);}}><ShoppingBag size={18}/><span>{language==='en'?`View basket · ${count} items`:`Sepetim · ${count} ürün`}</span><b>{money(subtotal-discount)}</b></button></>:<><Link href="/kutunu-olustur" className="mobile-more">{language==='en'?'Build a box':'Kutu oluştur'}</Link><Link className="button" href="/kurabiyeler"><ShoppingBag size={18}/>{language==='en'?'Choose cookies':'Kurabiye seç'}</Link></>}</nav>}
 
 <Sheet open={open} onOpenChange={next=>{setOpen(next);if(!next)changeCheckout(false);}}><SheetContent className="cart-sheet"><SheetTitle className="cart-title">{success?t("Siparişiniz kaydedildi"):checkout?t("Sipariş bilgileri"):t("Tatlı molanız")}</SheetTitle><SheetDescription>{success?(success.demo?t("Deneme siparişiniz panelde görünecek."):t("Sipariş talebiniz alındı. WhatsApp üzerinden onaylayalım.")):data.settings.demo?t("Gerçek menümüzle deneme siparişi oluşturabilirsiniz."):t("Sepetinizi kontrol edin.")}</SheetDescription>
