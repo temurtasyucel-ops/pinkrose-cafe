@@ -300,9 +300,12 @@ footer .wordmark { color: #fff0f6; }
     padding: 11px 15px;
   }
 
-  input:not([type="file"]),
+  input:not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
   select,
-  textarea {
+  textarea,
+  .checkout-form [data-slot="select-trigger"],
+  .edit-form [data-slot="select-trigger"],
+  .settings-form [data-slot="select-trigger"] {
     min-height: 52px;
     padding: 14px 15px;
     font-size: 16px;
