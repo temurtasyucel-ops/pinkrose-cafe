@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Storefront from "./storefront";
 import { catalog } from "@/db/store";
 
-const title = "El Yapımı Cookie ve Kurabiye";
+const title = "El Yapımı Cookie ve Kurabiye | Pink Rose Cafe";
 const description =
   "Manisa'da Callebaut Belçika çikolatası ve %100 yayık tereyağıyla hazırlanan Pink Rose kurabiyelerini keşfet. Ücretsiz gel-al ve Manisa / İzmir teslimatı.";
 const siteUrl = "https://www.pinkrosecafe.com.tr";
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description,
   alternates: { canonical: siteUrl },
   openGraph: {
-    title: `${title} | Pink Rose Cafe`,
+    title,
     description,
     url: siteUrl,
     type: "website",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${title} | Pink Rose Cafe`,
+    title,
     description,
     images: ["/products/gulpembe-dis.webp"],
   },
