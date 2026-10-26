@@ -35,3 +35,34 @@
 .footer span { font-size: 11px; color: #86525c; }
 @media (max-width: 380px) { .card { padding: 30px 18px 24px; } .link { padding: 15px 13px; gap: 12px; } }
 @media (prefers-reduced-motion: reduce) { .link { transition: none; } .link:hover { transform: none; } }
+
+
+/* Refined link hub styling, with the same links and content. */
+.page {
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, .78), transparent 58%),
+    linear-gradient(145deg, #fce8f0 0%, #ffd8e8 52%, #fff5f9 100%);
+}
+.card {
+  border-color: rgba(168, 0, 0, .12);
+  border-radius: 26px;
+  background: rgba(255, 251, 253, .96);
+  box-shadow: 0 24px 70px rgba(91, 28, 48, .13), 0 3px 12px rgba(91, 28, 48, .04);
+}
+.emblem { background: linear-gradient(145deg, #ffe6f0, #fbd0e1); }
+.header p { color: #79515c; }
+.links { gap: 12px; }
+.link {
+  min-height: 82px;
+  border-color: rgba(168, 0, 0, .16);
+  border-radius: 15px;
+  box-shadow: 0 5px 16px rgba(91, 28, 48, .045);
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.link:first-child {
+  background: linear-gradient(135deg, #a80000, #7d142b);
+  box-shadow: 0 8px 18px rgba(128, 0, 24, .17);
+}
+.link:hover { box-shadow: 0 10px 22px rgba(91, 28, 48, .09); }
+.link:first-child:hover { background: #7d142b; }
+@media (prefers-reduced-motion: reduce) { .link { transition: none; } }
