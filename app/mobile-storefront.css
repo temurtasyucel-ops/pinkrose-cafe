@@ -273,10 +273,25 @@ footer .wordmark { color: #fff0f6; }
   }
 
   .site-header .cart-button,
-  .site-header .mobile-menu-toggle,
-  .site-header .language-switch button {
+  .site-header .mobile-menu-toggle {
     min-width: 48px;
     min-height: 48px;
+  }
+
+  .site-header .language-switch button {
+    min-width: 40px;
+    min-height: 48px;
+    padding-inline: 5px;
+  }
+
+  .site-header .cart-button {
+    gap: 4px;
+    padding: 7px;
+  }
+
+  .site-header .cart-button b {
+    width: 20px;
+    height: 20px;
   }
 
   .button,
