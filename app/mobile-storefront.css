@@ -225,3 +225,136 @@ footer .wordmark { color: #fff0f6; }
   .button, .product, .shop-shortcuts > a { transition: none; }
   .button:hover, .product:hover, .shop-shortcuts > a:hover { transform: none; }
 }
+
+
+/* Mobile one-hand layout and accessible touch targets. */
+@media (max-width: 700px) {
+  body:has(.hero) .mobile-order-bar {
+    display: none;
+  }
+
+  .hero {
+    min-height: calc(100svh - 64px);
+    align-content: center;
+  }
+
+  .hero-copy {
+    min-height: calc(100svh - 64px);
+    padding: clamp(22px, 7vh, 48px) 7%;
+    justify-content: center;
+  }
+
+  .hero .eyebrow,
+  .hero .hero-quality,
+  .hero .hero-box-link,
+  .hero .hero-foot,
+  .hero-photo {
+    display: none !important;
+  }
+
+  .hero h1 {
+    max-width: 11ch;
+    margin: 14px 0 28px;
+    font-size: clamp(42px, 10.2vw, 58px);
+    line-height: 1.02;
+    letter-spacing: -.045em;
+  }
+
+  .hero-copy > .button {
+    width: min(100%, 280px);
+    min-height: 54px;
+    font-size: 15px;
+  }
+
+  .site-header {
+    min-height: 64px;
+    padding: 8px 5%;
+    gap: 8px;
+  }
+
+  .site-header .cart-button,
+  .site-header .mobile-menu-toggle {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .site-header .language-switch button {
+    min-width: 40px;
+    min-height: 48px;
+    padding-inline: 5px;
+  }
+
+  .site-header .cart-button {
+    gap: 4px;
+    padding: 7px;
+  }
+
+  .site-header .cart-button b {
+    width: 20px;
+    height: 20px;
+  }
+
+  .button,
+  .outline-button,
+  .add-button,
+  .filters button,
+  .gallery-arrow,
+  .quantity button,
+  .counter button,
+  .reviewArrows button,
+  .mobile-order-bar .button,
+  .mobile-order-bar .mobile-more {
+    min-height: 48px;
+  }
+
+  .add-button {
+    min-width: 48px;
+  }
+
+  .filters button {
+    padding: 11px 15px;
+  }
+
+  input:not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  select,
+  textarea,
+  .checkout-form [data-slot="select-trigger"],
+  .edit-form [data-slot="select-trigger"],
+  .settings-form [data-slot="select-trigger"] {
+    min-height: 52px;
+    padding: 14px 15px;
+    font-size: 16px;
+  }
+
+  textarea {
+    min-height: 120px;
+  }
+
+  label {
+    gap: 9px;
+    font-size: 15px;
+  }
+
+  .groupForm .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shop-shortcuts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .shop-shortcuts > a {
+    min-height: 140px;
+  }
+
+  .home-menu .product .add-button {
+    min-height: 48px;
+  }
+
+  .footer-contact a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+  }
+}
