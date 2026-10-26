@@ -10,12 +10,8 @@ const siteDescription =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: siteTitle,
-    template: "%s | Pink Rose Cafe",
-  },
+  title: siteTitle,
   description: siteDescription,
-  alternates: { canonical: siteUrl },
   openGraph: {
     title: siteTitle,
     description: siteDescription,
