@@ -21,11 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!p) return { title: 'Ürün bulunamadı | Pink Rose Cafe', robots: { index: false, follow: true } };
 
-  const title = `${p.name} Cookie | El Yapımı Kurabiye | Pink Rose Cafe`;
+  const title = `${p.name} Cookie | Manisa El Yapımı Kurabiye | Pink Rose Cafe`;
   const firstDescription = p.description.split(/[.!?]/)[0]?.trim() || p.description;
   const description = `${p.name} cookie: ${firstDescription}. Callebaut Belçika çikolatası ve %100 yayık tereyağıyla Manisa'da hazırlanır.`;
   const url = siteOrigin + productPath(p);
-  const images = p.image ? [{ url: p.image, alt: p.name }] : [];
+  const images = p.image ? [{ url: p.image, alt: `${p.name} el yapımı cookie` }] : [];
 
   return {
     title,
