@@ -7,7 +7,6 @@ records, orders = {}, {}
 faults={'order_save':False}
 class Mock(BaseHTTPRequestHandler):
  def do_PATCH(self):
-  print('MOCK PATCH',self.path,flush=True)
   data=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
   query=parse_qs(urlparse(self.path).query); key=query['id'][0].removeprefix('eq.')
   target=records if self.path.startswith('/rest/v1/records') else {row['id']:row for row in orders.values()}
@@ -19,7 +18,6 @@ class Mock(BaseHTTPRequestHandler):
  def out(self, data, status=200):
   self.send_response(status); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(json.dumps(data).encode())
  def do_POST(self):
-  print('MOCK POST',self.path,'PREFER',self.headers.get('Prefer'),flush=True)
   if self.path.startswith('/storage/v1/object/'):
    self.rfile.read(int(self.headers.get('Content-Length','0')))
    return self.out({'statusCode':'500','error':'StorageError','message':'PRIVATE-STORAGE-BACKEND-DETAIL'},500)
@@ -37,7 +35,6 @@ class Mock(BaseHTTPRequestHandler):
    orders.setdefault(data['request_key'], data); return self.out(None, 201)
   self.out({'error': 'unexpected'}, 500)
  def do_GET(self):
-  print('MOCK GET',self.path,flush=True)
   if self.path.startswith('/auth/v1/user'):return self.out({'id':'11111111-1111-4111-8111-111111111111','aud':'authenticated','role':'authenticated','email':'test@example.invalid','app_metadata':{},'user_metadata':{},'created_at':'2026-01-01T00:00:00Z'})
   if self.path.startswith('/rest/v1/admin_users'):return self.out([{'user_id':'11111111-1111-4111-8111-111111111111'}])
   if self.path.startswith('/rest/v1/records'):
