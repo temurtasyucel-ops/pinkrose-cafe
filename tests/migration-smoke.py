@@ -76,6 +76,8 @@ try:
  assert response.headers.get('X-Frame-Options')=='DENY'
  assert response.headers.get('Strict-Transport-Security')=='max-age=63072000'
  assert response.headers.get('Permissions-Policy')=='camera=(), microphone=(), geolocation=()'
+ csp=response.headers.get('Content-Security-Policy-Report-Only','')
+ assert "default-src 'self'" in csp and "frame-ancestors 'none'" in csp,csp
  assert call('/panel/login')[0]==200
  assert b'noindex' in call('/panel/login')[1]
  assert b'https://www.pinkrosecafe.com.tr' in call('/sitemap.xml')[1]
