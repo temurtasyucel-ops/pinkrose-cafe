@@ -36,7 +36,7 @@ def list_objects(prefix):
 def walk(prefix=""):
     for entry in list_objects(prefix):
         name = entry.get("name")
-        if not isinstance(name, str) or not name or name in {".", ".."} or "/" in name or "\\\\" in name:
+        if not isinstance(name, str) or not name or name in {".", ".."} or "/" in name or "\\" in name:
             raise RuntimeError(f"Unsafe object name returned by Storage: {name!r}")
         path = f"{prefix}/{name}".strip("/")
         if entry.get("id") is None and entry.get("metadata") is None:
