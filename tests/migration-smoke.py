@@ -84,6 +84,21 @@ try:
  assert call('/api/admin')[0]==401
  assert call('/api/upload',{})[0]==401
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==9,(status,c)
+ now=datetime.datetime.now(datetime.timezone.utc)
+ future=(now+datetime.timedelta(days=1)).isoformat()
+ past=(now-datetime.timedelta(days=1)).isoformat()
+ campaign_rows=[
+  ('campaign-inactive',{'id':'campaign-inactive','title':'Hidden inactive','text':'test','discount':50,'start':'','end':'','active':False}),
+  ('campaign-future',{'id':'campaign-future','title':'Hidden future','text':'test','discount':50,'start':future,'end':'','active':True}),
+  ('campaign-expired',{'id':'campaign-expired','title':'Hidden expired','text':'test','discount':50,'start':'','end':past,'active':True}),
+  ('campaign-live',{'id':'campaign-live','title':'Visible live','text':'test','discount':10,'start':past,'end':future,'active':True}),
+ ]
+ for campaign_id,campaign in campaign_rows: records[campaign_id]={'id':campaign_id,'kind':'campaign','data':campaign}
+ status,public_catalog=call('/api/catalog')
+ assert status==200 and [x['title'] for x in public_catalog['campaigns']]==['Visible live'],public_catalog['campaigns']
+ status,admin_catalog=call('/api/admin',admin=True)
+ assert status==200 and {x['title'] for x in admin_catalog['campaigns']}=={'Hidden inactive','Hidden future','Hidden expired','Visible live'},admin_catalog.get('campaigns')
+ c=public_catalog
  status,health=call('/api/health'); assert status==200 and health=={'status':'ok'},(status,health)
 
  # Dedicated routes use the same live catalog and expose their own canonical metadata.
