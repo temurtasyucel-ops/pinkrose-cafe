@@ -1,10 +1,11 @@
 import {service} from '@/lib/supabase/service';
 import {admin,sameOrigin,AdminError} from '@/lib/admin';
 import {ServiceFailure,failureResponse} from '@/lib/diagnostics';
+import {rateLimit} from '@/lib/rate-limit';
 export async function POST(req:Request){
   let stage='request';
   try{
-    sameOrigin(req);stage='authorization';await admin();
+    sameOrigin(req);if(Number(req.headers.get('content-length')||0)>5*1024*1024)return Response.json({error:'Yükleme isteği çok büyük.'},{status:413});if(!await rateLimit(req,'upload',10))return Response.json({error:'Çok fazla fotoğraf yükleme denemesi. Biraz sonra tekrar deneyin.'},{status:429});stage='authorization';await admin();
     stage='validation';
     const form=await req.formData(),file=form.get('file');
     if(!(file instanceof File)||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>4*1024*1024)throw Error('En fazla 4 MB JPEG, PNG veya WebP seçin.');
