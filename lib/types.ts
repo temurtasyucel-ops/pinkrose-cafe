@@ -8,7 +8,7 @@ export type Settings={heroMode?:'collection'|'product'|'custom';heroProductId?:s
 export type Catalog={calendar?:PublicCalendar;reviews?:PublicReview[];products:Product[];categories:string[];campaigns:Campaign[];settings:Settings;bulkPricing:{minQty:number;unitPrice:number};packages:{english?:Record<string,string>;qty:number;name:string;price:number}[]};
 export type Order={trackingToken?:string;preferredDate?:string;capacityQty?:number;gift?:GiftDetails;statusHistory?:{from:string;to:string;at:string}[];language?:'tr'|'en';id:string;number:string;customer:string;phone:string;type:string;city?:string;deliveryFeePending?:boolean;address:string;note:string;date:string;confirmedAt?:string;items:{id:string;name:string;price:number;qty:number}[];subtotal:number;discount:number;deliveryFee:number;total:number;status:string;created:string;demo:boolean};
 export const money=(c:number)=>new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(c/100);
-export const liveCampaign=(c:Campaign)=>c.active&&(!c.start||new Date(c.start).getTime()<=Date.now())&&(!c.end||new Date(c.end).getTime()>=Date.now());
+export const liveCampaign=(c:Campaign,now=new Date())=>c.active&&(!c.start||new Date(c.start).getTime()<=now.getTime())&&(!c.end||new Date(c.end).getTime()>=now.getTime());
 export const statuses=['Onay bekliyor','Ödeme bekleniyor','Ödeme alındı','Onaylandı','Hazırlanıyor','Teslim edildi','İptal'];
 
 export const orderStatus=(status:string)=>status==='Yeni'?'Onay bekliyor':status;
