@@ -101,7 +101,8 @@ try:
  assert status==200 and [x['title'] for x in public_catalog['campaigns']]==['Visible live'],public_catalog['campaigns']
  status,admin_catalog=call('/api/admin',admin=True)
  assert status==200 and {x['title'] for x in admin_catalog['campaigns']}=={'Hidden inactive','Hidden future','Hidden expired','Visible live'},admin_catalog.get('campaigns')
- c=public_catalog
+ for campaign_id,_ in campaign_rows: records.pop(campaign_id,None)
+ status,c=call('/api/catalog'); assert status==200 and not c['campaigns'],c.get('campaigns')
  status,health=call('/api/health'); assert status==200 and health=={'status':'ok'},(status,health)
 
  # Dedicated routes use the same live catalog and expose their own canonical metadata.
