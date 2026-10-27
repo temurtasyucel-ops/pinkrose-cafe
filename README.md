@@ -28,12 +28,46 @@ Node.js 22.13 veya daha güncel bir sürüm gerekir. Doğrulama komutları:
 
 ```
 node --experimental-strip-types tests/core.mjs
+npm run test:env
 npm run typecheck
 npm run build
 python tests/migration-smoke.py
 ```
 
 HTTP testi yerel bir Supabase taklidi kullanır; gerçek sipariş veya hesap oluşturmaz. Canlı hesap ve tarayıcı kontrolleri ayrıca yapılır.
+
+## Üretim işletimi: limitler, sağlık kontrolü, geri alma ve yedek
+
+### Rate limiting ve ortam değişkenleri
+
+- <code>POST /api/auth/login</code> dakikada IP başına 15; <code>POST /api/inquiries</code> 4; <code>POST /api/orders</code> 10; <code>POST /api/order-status</code> 40 istekle sınırlandırılır. Limitler Supabase'teki <code>consume_rate_limit</code> RPC'si üzerinden paylaşılır; rate-limit altyapısı hata verirse istekler güvenlik için reddedilir, limit atlanmaz.
+- <code>GET /api/health</code> uygulamanın Supabase REST API'si üzerinden <code>records</code> tablosuna erişebildiğini doğrular. Başarıda yalnızca <code>{"status":"ok"}</code> döner; başarısızlıkta genel 503 yanıtı ve loglarda eşleştirilebilir <code>PRERR-…</code> referansı döner. İzleme servisiyle 1–5 dakikada bir kontrol etmek yeterlidir; bu uç nokta her çağrıda veritabanına sorgu gönderir.
+- <code>lib/env.ts</code> Supabase URL'sini ve gerekli anahtarları kullanım anında doğrular. URL HTTPS olmalı; HTTP yalnızca localhost geliştirme/test ortamında kabul edilir. <code>SUPABASE_SECRET_KEY</code> (veya eski <code>SUPABASE_SERVICE_ROLE_KEY</code>) yalnızca sunucuda tutulmalıdır; hiçbir gizli anahtarı <code>NEXT_PUBLIC_</code> ile tanımlamayın.
+- Ortam değişkenlerini kontrol etmek için <code>npm run test:env</code> komutu kullanılabilir. Bu test gerçek Supabase hesabına bağlanmaz.
+
+### Connection pool ve sağlık kontrolü
+
+Uygulama <code>@supabase/supabase-js</code> ile Supabase'in HTTPS REST API'sini kullanır; uygulama doğrudan PostgreSQL TCP bağlantısı açmadığından Next.js tarafında klasik bir connection pool yapılandırması yoktur. Supabase'in API/veritabanı katmanı bağlantıları kendi tarafında yönetir. İleride doğrudan PostgreSQL sürücüsü eklenirse Supabase'in connection pooler seçeneği ayrıca değerlendirilmelidir.
+
+### Vercel geri alma
+
+1. Vercel projesinde **Deployments** bölümünü açın.
+2. Sorunlu dağıtımdan önceki, bilinen sağlam **Ready** dağıtımını seçip **Promote/Rollback** işlemiyle tekrar canlıya alın (arayüzdeki ad değişebilir).
+3. <code>/api/health</code> ve vitrin sayfalarını kontrol edin; mümkünse deneme sipariş akışını da doğrulayın.
+4. Geri alma yalnızca uygulama kodunu/dağıtımını geri alır. Supabase verilerini, fiyatları, siparişleri veya Storage dosyalarını otomatik olarak geri almaz. Veritabanı değişiklikleri ayrı bir geri dönüş planı gerektirir.
+
+### Supabase yedekleme — yapılması gereken manuel işlem
+
+Bu Supabase projesi Free planda. Supabase dokümantasyonuna göre günlük otomatik veritabanı yedekleri Pro, Team ve Enterprise planlarında sunulur; Free projeler düzenli dışa aktarma ve site dışı yedek tutmalıdır. **Bu depoda otomatik yedekleme görevi veya doğrulanmış bir geri yükleme kopyası yoktur.**
+
+Bir yönetici bilgisayarında Supabase CLI kurulu ve <code>SUPABASE_DB_URL</code> güvenli şekilde tanımlı olduktan sonra veritabanı mantıksal yedeği şu şekilde alınabilir:
+
+<pre><code>mkdir -p "$HOME/pinkrose-backups"
+supabase db dump --db-url "$SUPABASE_DB_URL" -f "$HOME/pinkrose-backups/pinkrose-$(date +%F).sql"</code></pre>
+
+Yedek dosyasını Git deposuna veya herkese açık bir yere koymayın; şifreli ve site dışı bir konumda saklayın. Supabase Storage'daki <code>product-images</code> nesneleri veritabanı dökümünün içine girmez; bunları ayrıca dışa aktarıp aynı yedekleme düzenine dahil edin. Düzenli aralıklarla yedekten geri yükleme testi yapın. Yedek alma ve geri yükleme henüz bu işlem sırasında çalıştırılmadı; yalnızca prosedür belgelendi.
+
+Kaynaklar: Supabase [Database Backups](https://supabase.com/docs/guides/platform/backups), [CLI db dump](https://supabase.com/docs/reference/cli/supabase-db-dump).
 
 ## Geçiş durumu
 
