@@ -24,6 +24,7 @@ export async function POST(req:Request){let stage='request';try{
  const s=(v:unknown,n=500)=>typeof v==='string'?v.trim().slice(0,n):'';
  const customer=s(b.customer,100),phone=s(b.phone,25).replace(/\D/g,'');
  if(customer.length<2||!/^(0?5\d{9}|905\d{9})$/.test(phone))throw Error('Adınızı ve geçerli bir cep telefonu numarasını girin.');
+ stage='rate_limit';if(!await rateLimit(req,'orders-phone',5,3600,phone))return Response.json({error:'Bu telefon numarasıyla kısa sürede çok fazla sipariş talebi oluşturuldu. Lütfen daha sonra tekrar deneyin.'},{status:429});
  if(!['Teslimat','Gel-al'].includes(b.type)||b.type==='Teslimat'&&s(b.address).length<10)throw Error('Teslimat adresini girin.');
  if(b.type==='Teslimat'&&!['Manisa','İzmir'].includes(b.city))throw Error('Teslimat için Manisa veya İzmir seçin.');
  if(!Array.isArray(b.items)||b.items.length<1||b.items.length>30)throw Error('Sepetinizi kontrol edin.');
