@@ -19,6 +19,7 @@ export async function POST(req:Request){let stage='request';try{
  stage='rate_limit';if(!await rateLimit(req,'orders',10))return Response.json({error:'Çok fazla istek. Bir dakika sonra tekrar deneyin.'},{status:429});
  stage='validation';
  const b:any=await req.json();
+ if(b.website!==undefined&&(typeof b.website!=='string'||b.website.trim()!==''))return Response.json({error:'İstek doğrulanamadı.'},{status:400});
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(b.key||''))throw Error('Sipariş doğrulanamadı.');
  stage='lookup';const old=await orderByKey(b.key);if(old){stage='finalize';if(orderBooking(old))await settleCalendar('hold:new:'+b.key,old.id);return result(old);}
  stage='validation';
