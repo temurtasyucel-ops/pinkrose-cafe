@@ -30,7 +30,7 @@ export async function POST(req:Request){let stage='request';try{
   try{
    const form=new URLSearchParams({secret:turnstileSecret,response:token});
    const verification=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form,signal:AbortSignal.timeout(5000),cache:'no-store'});
-   if(verification.ok){const result=await verification.json() as {success?:boolean;hostname?:string;action?:string};const expectedHost=new URL(req.url).hostname;verified=result.success===true&&(!result.hostname||result.hostname===expectedHost);}
+   if(verification.ok){const result=await verification.json() as {success?:boolean;hostname?:string;action?:string};const expectedHost=new URL(req.url).hostname;verified=result.success===true&&result.hostname===expectedHost;}
   }catch{verified=false;}
   if(!verified)return Response.json({error:'Güvenlik doğrulaması başarısız. Lütfen tekrar deneyin.'},{status:400});
  }
