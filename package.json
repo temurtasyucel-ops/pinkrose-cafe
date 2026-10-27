@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:env": "node --experimental-strip-types tests/env.mjs"
+    "test:env": "node --experimental-strip-types tests/env.mjs",
+    "test:security": "node --experimental-strip-types tests/security.mjs",
+    "test": "npm run test:env && npm run test:security && node --experimental-strip-types tests/core.mjs && node --experimental-strip-types tests/order-calendar.mjs && node --experimental-strip-types tests/order-date.mjs && node --experimental-strip-types tests/order-admin.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
