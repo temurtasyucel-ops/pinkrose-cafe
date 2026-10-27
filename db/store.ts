@@ -8,7 +8,7 @@ import {calorieEstimate} from '@/lib/nutrition';
 import {setConfirmedSchedule,recordStatusChange} from '@/lib/order-planning';
 import {sortedProducts,validateProductOrder} from '@/lib/product-order';
 import {service} from '@/lib/supabase/service';
-import {orderStatus,deliveryQuote} from '@/lib/types';
+import {orderStatus,deliveryQuote,liveCampaign} from '@/lib/types';
 import {defaultBulkPricing,validBulkPricing} from '@/lib/pricing';
 import {seed} from '@/lib/seed';
 import type {Catalog,Order,Product,Campaign} from '@/lib/types';
@@ -40,7 +40,7 @@ export async function catalog(all=false):Promise<Catalog>{
   const {data:reviewRows,error:reviewError}=await service().from('records').select('data').eq('kind','review').eq('data->>published','true').limit(12);
   if(reviewError)logFailure('catalog','reviews',reviewError,503);
   const reviews=(reviewRows||[]).map(r=>publicReview(r.data as ShopReview)).filter((r):r is NonNullable<typeof r>=>!!r);
-  return {calendar:publicCalendar(await calendarState()),reviews,...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign)};
+  return {calendar:publicCalendar(await calendarState()),reviews,...packageData,products:orderedProducts,categories:record('categories'),settings:{...seed.settings,...record('settings')},campaigns:rows.filter(r=>r.kind==='campaign').map(r=>r.data as Campaign).filter(campaign=>all||liveCampaign(campaign))};
 }
 export async function put(id:string,kind:string,data:unknown){
   const {error}=await service().from('records').upsert({id,kind,data},{onConflict:'id'});check(error);
