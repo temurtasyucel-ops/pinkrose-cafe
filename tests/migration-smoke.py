@@ -326,5 +326,11 @@ try:
  assert 'PRIVATE-DIAGNOSTIC-CUSTOMER-TOKEN' not in diagnostic_text and 'PRIVATE-STORAGE-BACKEND-DETAIL' not in diagnostic_text and 'private-name.png' not in diagnostic_text
  assert failed['reference'] in diagnostic_text and upload_error['reference'] in diagnostic_text
  print('PASS: upload and order failures correlate with sanitized logs without private filenames or backend messages.')
+except Exception:
+ log.flush()
+ try:
+  with open('/tmp/pinkrose-migration-test.log') as diagnostic_log: print('SMOKE SERVER LOG:\\n'+diagnostic_log.read()[-12000:])
+ except Exception as log_error: print('Could not read smoke log:',log_error)
+ raise
 finally:
  p.terminate(); p.wait(timeout=10); mock.shutdown(); log.close()
