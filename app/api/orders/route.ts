@@ -20,6 +20,20 @@ export async function POST(req:Request){let stage='request';try{
  stage='validation';
  const b:any=await req.json();
  if(b.website!==undefined&&(typeof b.website!=='string'||b.website.trim()!==''))return Response.json({error:'İstek doğrulanamadı.'},{status:400});
+ const turnstileSecret=process.env.TURNSTILE_SECRET_KEY;
+ const turnstileSite=process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+ if(Boolean(turnstileSecret)!==Boolean(turnstileSite))return Response.json({error:'Sipariş doğrulaması yapılandırılamadı. Lütfen WhatsApp üzerinden iletişime geçin.'},{status:503});
+ if(turnstileSecret){
+  const token=typeof b.turnstileToken==='string'?b.turnstileToken:'';
+  if(!token||token.length>2048)return Response.json({error:'Güvenlik doğrulamasını tamamlayın.'},{status:400});
+  let verified=false;
+  try{
+   const form=new URLSearchParams({secret:turnstileSecret,response:token});
+   const verification=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:form,signal:AbortSignal.timeout(5000),cache:'no-store'});
+   if(verification.ok){const result=await verification.json() as {success?:boolean;hostname?:string;action?:string};const expectedHost=new URL(req.url).hostname;verified=result.success===true&&(!result.hostname||result.hostname===expectedHost);}
+  }catch{verified=false;}
+  if(!verified)return Response.json({error:'Güvenlik doğrulaması başarısız. Lütfen tekrar deneyin.'},{status:400});
+ }
  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(b.key||''))throw Error('Sipariş doğrulanamadı.');
  stage='lookup';const old=await orderByKey(b.key);if(old){stage='finalize';if(orderBooking(old))await settleCalendar('hold:new:'+b.key,old.id);return result(old);}
  stage='validation';
