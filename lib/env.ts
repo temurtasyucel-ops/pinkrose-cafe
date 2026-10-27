@@ -1,8 +1,10 @@
 import {z} from 'zod';
 
 const supabaseUrlSchema=z.string().trim().url().refine(value=>{
-  const url=new URL(value);
-  return url.protocol==='https:' || (url.protocol==='http:' && ['localhost','127.0.0.1'].includes(url.hostname));
+  try{
+    const url=new URL(value);
+    return url.protocol==='https:' || (url.protocol==='http:' && ['localhost','127.0.0.1'].includes(url.hostname));
+  }catch{return false;}
 });
 const keySchema=z.string().trim().min(1).refine(value=>!/\s/.test(value));
 
