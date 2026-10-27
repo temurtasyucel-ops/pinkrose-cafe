@@ -216,6 +216,9 @@ try:
  records['settings']['data']['preparationText']='Özel hazırlık süresi'
  assert call('/api/catalog')[1]['settings']['preparationText']=='Özel hazırlık süresi'
  key=str(uuid.uuid4()); body={'key':key,'customer':'Test Customer','phone':'05060584705','type':'Gel-al','date':'Pazar 15.00','note':'Hediye','items':[{'id':'cookie-1','qty':2,'price':1}]}
+ hidden_key=str(uuid.uuid4());before_hidden=len(orders)
+ assert call('/api/orders',{**body,'key':hidden_key,'website':'filled'})[0]==400
+ assert len(orders)==before_hidden and hidden_key not in orders
  status,o=call('/api/orders',body); assert status==200 and o['total']==30000 and o['demo'] is True,(status,o)
  assert all(x in o['whatsappMessage'] for x in ['2 × Gülpembe','Pazar 15.00','Hediye','Telefon:'])
  status,again=call('/api/orders',{**body,'items':[{'id':'cookie-1','qty':8}]}); assert again==o and len(orders)==1,(status,again)
