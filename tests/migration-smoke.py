@@ -79,6 +79,7 @@ try:
  assert call('/api/admin')[0]==401
  assert call('/api/upload',{})[0]==401
  status,c=call('/api/catalog'); assert status==200 and len(c['products'])==9,(status,c)
+ status,health=call('/api/health'); assert status==200 and health=={'status':'ok'},(status,health)
 
  # Dedicated routes use the same live catalog and expose their own canonical metadata.
  for route in ['/kurabiyeler','/kutunu-olustur','/kutlama-etkinlik','/hikayemiz']:
