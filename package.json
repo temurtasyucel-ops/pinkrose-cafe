@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test:env": "node --experimental-strip-types tests/env.mjs",
     "test:security": "node --experimental-strip-types tests/security.mjs",
-    "test": "npm run test:env && npm run test:security && node --experimental-strip-types tests/core.mjs && node --experimental-strip-types tests/order-calendar.mjs && node --experimental-strip-types tests/order-date.mjs && node --experimental-strip-types tests/order-admin.mjs"
+    "test": "npm run test:env && npm run test:security && node --experimental-strip-types tests/core.mjs && node --experimental-strip-types tests/hero.mjs && node tests/i18n.cjs && node --experimental-strip-types tests/nutrition.mjs && node --experimental-strip-types tests/order-admin.mjs && node --experimental-strip-types tests/order-calendar.mjs && node --experimental-strip-types tests/order-date.mjs && node --experimental-strip-types tests/order-planning.mjs && node --experimental-strip-types tests/quantity-banner.mjs && node tests/shop-experience.cjs && node tests/shopping-controls.cjs && node --experimental-strip-types tests/storefront-offers.mjs && node --experimental-strip-types tests/storefront-pages.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
