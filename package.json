@@ -9,7 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:env": "node --experimental-strip-types tests/env.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
