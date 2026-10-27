@@ -22,7 +22,7 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Audit production dependencies
+      - name: Audit dependency vulnerabilities
         run: npm audit --audit-level=high
       - name: Type-check
         run: npm run typecheck
