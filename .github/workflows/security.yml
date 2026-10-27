@@ -34,5 +34,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:3102
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
           SUPABASE_SECRET_KEY: ci-placeholder
+      - name: Validate backup script syntax
+        run: python3 -m py_compile scripts/backup-storage.py
       - name: API and route smoke test with isolated fake Supabase
         run: python3 tests/migration-smoke.py
