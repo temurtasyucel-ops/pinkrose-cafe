@@ -1,9 +1,9 @@
 name: Encrypted off-site backup
 
 on:
+  # Backup automation is intentionally on hold until the external storage account
+  # and required secrets are configured. Manual trigger remains available.
   workflow_dispatch:
-  schedule:
-    - cron: "17 3 * * *"
 
 permissions:
   contents: read
