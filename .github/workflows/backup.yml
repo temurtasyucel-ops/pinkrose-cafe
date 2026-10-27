@@ -64,6 +64,18 @@ jobs:
           printf 'commit=%s\nrun_id=%s\ncreated_at_utc=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%FT%TZ)" > "$RUNNER_TEMP/pinkrose-backup/manifest.txt"
           tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/pinkrose-backup.tar.gz" pinkrose-backup
           sha256sum "$RUNNER_TEMP/pinkrose-backup.tar.gz" > "$RUNNER_TEMP/pinkrose-backup.tar.gz.sha256"
+      - name: Verify backup bucket security settings
+        env:
+          AWS_S3_BACKUP_BUCKET: ${{ secrets.AWS_S3_BACKUP_BUCKET }}
+        run: |
+          set -euo pipefail
+          aws s3api get-public-access-block --bucket "$AWS_S3_BACKUP_BUCKET" --output json > "$RUNNER_TEMP/public-access-block.json"
+          jq -e '.PublicAccessBlockConfiguration | .BlockPublicAcls == true and .IgnorePublicAcls == true and .BlockPublicPolicy == true and .RestrictPublicBuckets == true' "$RUNNER_TEMP/public-access-block.json" >/dev/null
+          versioning="$(aws s3api get-bucket-versioning --bucket "$AWS_S3_BACKUP_BUCKET" --query Status --output text)"
+          if [ "$versioning" != "Enabled" ]; then
+            echo "::error::S3 bucket versioning must be enabled before storing backups."
+            exit 1
+          fi
       - name: Upload encrypted backup to private S3 bucket
         env:
           AWS_S3_BACKUP_BUCKET: ${{ secrets.AWS_S3_BACKUP_BUCKET }}
@@ -72,4 +84,6 @@ jobs:
           key="pinkrose/$(date -u +%Y/%m/%d)/pinkrose-${GITHUB_RUN_ID}-${GITHUB_SHA}.tar.gz"
           aws s3 cp "$RUNNER_TEMP/pinkrose-backup.tar.gz" "s3://$AWS_S3_BACKUP_BUCKET/$key" --sse AES256 --only-show-errors
           aws s3 cp "$RUNNER_TEMP/pinkrose-backup.tar.gz.sha256" "s3://$AWS_S3_BACKUP_BUCKET/$key.sha256" --sse AES256 --only-show-errors
-          echo "Backup uploaded to s3://$AWS_S3_BACKUP_BUCKET/$key"
+          aws s3api head-object --bucket "$AWS_S3_BACKUP_BUCKET" --key "$key" >/dev/null
+          aws s3api head-object --bucket "$AWS_S3_BACKUP_BUCKET" --key "$key.sha256" >/dev/null
+          echo "Backup uploaded and object presence verified: s3://$AWS_S3_BACKUP_BUCKET/$key"
