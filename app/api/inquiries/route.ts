@@ -12,6 +12,7 @@ export async function POST(req:Request){try{
  if(b.website)return Response.json({ok:true});
  const customer=s(b.customer,100),phone=s(b.phone,25).replace(/\D/g,''),quantity=Number(b.quantity),occasion=s(b.occasion,80);
  if(customer.length<2||!/^(0?5\d{9}|905\d{9})$/.test(phone)||!Number.isInteger(quantity)||quantity<10||quantity>10000||!['Ofis / kurumsal','Doğum günü','Etkinlik / davet','Diğer'].includes(occasion))throw Error('Ad, telefon, etkinlik türü ve en az 10 adet için talep bilgilerini kontrol edin.');
+ if(!await rateLimit(req,'inquiries-phone',5,3600,phone))return Response.json({error:'Bu telefon numarasıyla kısa sürede çok fazla talep oluşturuldu. Lütfen daha sonra tekrar deneyin.'},{status:429});
  const c=await catalog();if(c.settings.ordersPaused)throw Error(c.settings.pauseMessage||'Şu an yeni sipariş alamıyoruz.');
  if(c.settings.demo)throw Error('Deneme modunda toplu sipariş talebi alınmaz.');
  if(b.date)assertPreferredDate(b.date,c.settings,c.calendar,quantity);
