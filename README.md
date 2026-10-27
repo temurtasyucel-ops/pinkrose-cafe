@@ -189,3 +189,36 @@ The experience panel reports anonymous checkout opens/exits separately from live
 - Backups are still an operational task: this project is on Supabase Free, which does not include automatic daily backups. Before future database changes, export the database to a private off-site location and separately copy the Storage objects in `product-images` (database dumps do not include file contents). Periodically perform a restore test in a separate project. Vercel rollback restores application code, not Supabase data.
 
 Official operations references: https://supabase.com/docs/guides/auth/password-security, https://supabase.com/docs/guides/platform/backups, https://supabase.com/docs/guides/cron.
+
+
+### Additional hardening and backup operations
+
+#### Cloudflare Turnstile (order anti-bot)
+
+The checkout supports server-verified Cloudflare Turnstile. Configure both variables in **Vercel → Project → Settings → Environment Variables** for Production (and Preview if testing there):
+
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`: public Turnstile site key, restricted in Cloudflare to the production hostname(s).
+- `TURNSTILE_SECRET_KEY`: private Turnstile secret; server-side only, never prefix it with `NEXT_PUBLIC_`.
+
+Set both or neither. If only one is set, order creation fails closed with HTTP 503. When both are set, a missing/invalid token, failed Siteverify response, or hostname mismatch rejects the order. Redeploy after setting them. Until both keys are configured, existing rate limits and honeypot remain active but there is no Turnstile challenge.
+
+#### CSP rollout
+
+A global `Content-Security-Policy-Report-Only` header is enabled first to identify legitimate third-party resources without breaking checkout. Review browser/Vercel reports after exercising the full site and admin panel; only then convert to enforced CSP and remove unnecessary allowances. Do not enforce a strict policy without checking image hosts, Supabase requests, and any scripts used by the deployed app.
+
+#### Scheduled off-site backup
+
+`.github/workflows/backup.yml` runs daily at 03:17 UTC and can also be started manually. It exports the PostgreSQL database with `pg_dump`, downloads every object from the private `product-images` Storage bucket, packages both with a manifest, computes a SHA-256 checksum, and uploads the archive to S3 with server-side AES-256 encryption. The workflow deliberately fails until all required secrets and cloud permissions are configured.
+
+Configure these **GitHub Actions repository secrets**:
+
+- `SUPABASE_DB_URL`: PostgreSQL connection URI for this project; use a database password/connection string, not an anon or API key.
+- `SUPABASE_URL`: the project's HTTPS API URL.
+- `SUPABASE_SERVICE_ROLE_KEY`: private server-role key with Storage read access.
+- `AWS_BACKUP_ROLE_ARN`: an AWS IAM role ARN trusted for GitHub Actions OIDC for this exact repository/workflow.
+- `AWS_REGION`: the AWS region containing the backup bucket.
+- `AWS_S3_BACKUP_BUCKET`: a private S3 bucket dedicated to backups.
+
+Grant the role only `s3:PutObject` to the backup prefix and configure the AWS trust policy for this repository's GitHub OIDC subject. Keep S3 Block Public Access enabled, enable bucket versioning, and configure an S3 lifecycle rule (for example, 90 days) appropriate to the business's recovery needs. Do not store the database password, service-role key, or AWS credentials in Git, source files, or chat. Run the workflow manually once after configuration and verify the uploaded archive and checksum. Perform a restore test into a separate Supabase project periodically; a successful upload alone does not prove recoverability.
+
+The backup contains customer/order data and product images, so limit S3 and GitHub secret access to trusted maintainers. If a secret has been exposed, rotate it immediately. The backup workflow is implemented but cannot run successfully until the external AWS/Supabase secrets and IAM trust are supplied.
