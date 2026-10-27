@@ -15,7 +15,5 @@ export async function POST(req:Request){try{
  const day=turkeyDate(),id='insight-'+day.replaceAll('-','')+'-'+crypto.randomUUID();
  const {error}=await service().from('records').insert({id,kind:'insight',data:{event:b.event,productId,quantity:b.quantity,day}});
  if(error)throw error;
- // Keep anonymous interaction history bounded; customer/order records are never touched.
- if(Math.random()<0.01){const cutoff=turkeyDate(new Date(Date.now()-35*86400000));await service().from('records').delete().eq('kind','insight').lt('data->>day',cutoff);}
  return new Response(null,{status:204});
  }catch{return new Response(null,{status:400});}}
