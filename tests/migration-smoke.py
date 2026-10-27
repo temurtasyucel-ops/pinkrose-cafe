@@ -70,7 +70,12 @@ try:
   try:
    if call('/')[0]==200: break
   except Exception: time.sleep(.1)
- assert '2–3 gün'.encode() in call('/')[1]
+ status,home_page=call('/'); assert status==200 and b'Pink Rose Cafe' in home_page
+ response=urllib.request.urlopen(base+'/',timeout=15)
+ assert response.headers.get('X-Content-Type-Options')=='nosniff'
+ assert response.headers.get('X-Frame-Options')=='DENY'
+ assert response.headers.get('Strict-Transport-Security')=='max-age=63072000'
+ assert response.headers.get('Permissions-Policy')=='camera=(), microphone=(), geolocation=()'
  assert call('/panel/login')[0]==200
  assert b'noindex' in call('/panel/login')[1]
  assert b'https://www.pinkrosecafe.com.tr' in call('/sitemap.xml')[1]
