@@ -1,0 +1,72 @@
+name: Encrypted off-site backup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pinkrose-offsite-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Validate required backup configuration
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          AWS_BACKUP_ROLE_ARN: ${{ secrets.AWS_BACKUP_ROLE_ARN }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_S3_BACKUP_BUCKET: ${{ secrets.AWS_S3_BACKUP_BUCKET }}
+        run: |
+          set -eu
+          for name in SUPABASE_DB_URL SUPABASE_URL SUPABASE_SERVICE_ROLE_KEY AWS_BACKUP_ROLE_ARN AWS_REGION AWS_S3_BACKUP_BUCKET; do
+            eval 'value=${'"$name"'-}'
+            if [ -z "$value" ]; then
+              echo "::error::Missing GitHub Actions secret: $name. Configure the backup secrets before running this workflow."
+              exit 1
+            fi
+          done
+          case "$SUPABASE_URL" in https://*) ;; *) echo "::error::SUPABASE_URL must use HTTPS"; exit 1;; esac
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_BACKUP_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+      - name: Export database and Storage objects
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          STORAGE_BACKUP_DIR: ${{ runner.temp }}/pinkrose-backup/product-images
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/pinkrose-backup"
+          pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --no-acl --file="$RUNNER_TEMP/pinkrose-backup/database.dump"
+          python3 scripts/backup-storage.py
+          printf 'commit=%s\nrun_id=%s\ncreated_at_utc=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" "$(date -u +%FT%TZ)" > "$RUNNER_TEMP/pinkrose-backup/manifest.txt"
+          tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/pinkrose-backup.tar.gz" pinkrose-backup
+          sha256sum "$RUNNER_TEMP/pinkrose-backup.tar.gz" > "$RUNNER_TEMP/pinkrose-backup.tar.gz.sha256"
+      - name: Upload encrypted backup to private S3 bucket
+        env:
+          AWS_S3_BACKUP_BUCKET: ${{ secrets.AWS_S3_BACKUP_BUCKET }}
+        run: |
+          set -euo pipefail
+          key="pinkrose/$(date -u +%Y/%m/%d)/pinkrose-${GITHUB_RUN_ID}-${GITHUB_SHA}.tar.gz"
+          aws s3 cp "$RUNNER_TEMP/pinkrose-backup.tar.gz" "s3://$AWS_S3_BACKUP_BUCKET/$key" --sse AES256 --only-show-errors
+          aws s3 cp "$RUNNER_TEMP/pinkrose-backup.tar.gz.sha256" "s3://$AWS_S3_BACKUP_BUCKET/$key.sha256" --sse AES256 --only-show-errors
+          echo "Backup uploaded to s3://$AWS_S3_BACKUP_BUCKET/$key"
