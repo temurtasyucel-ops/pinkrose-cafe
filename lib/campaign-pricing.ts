@@ -37,16 +37,23 @@ export function campaignPricing(campaign:Campaign,products:Product[],quantities:
   const normalSubtotal=selected.reduce((sum,p)=>sum+p.price*quantities[p.id],0);
   if(eventOrder){
     if(quantity<config.eventMinQty)throw new Error(`Etkinlik siparişi en az ${config.eventMinQty} adet olmalıdır.`);
-    const campaignTotal=quantity*config.eventUnitPrice;
-    return {quantity,normalSubtotal,campaignTotal,savings:Math.max(0,normalSubtotal-campaignTotal),discountPercent:normalSubtotal?Math.max(0,(normalSubtotal-campaignTotal)/normalSubtotal*100):0,eventOrder:true,breakdown:[{qty:quantity,unitPrice:config.eventUnitPrice,lineTotal:campaignTotal,label:'Etkinlik siparişi'}]};
+    const requestedTotal=quantity*config.eventUnitPrice;
+    const useNormal= requestedTotal>normalSubtotal;
+    const campaignTotal=Math.min(requestedTotal,normalSubtotal);
+    const breakdown=useNormal
+      ? selected.map(p=>({qty:quantities[p.id],unitPrice:p.price,lineTotal:p.price*quantities[p.id],label:'Güncel normal fiyat'}))
+      : [{qty:quantity,unitPrice:config.eventUnitPrice,lineTotal:requestedTotal,label:'Etkinlik siparişi'}];
+    return {quantity,normalSubtotal,campaignTotal,savings:normalSubtotal-campaignTotal,discountPercent:normalSubtotal?(normalSubtotal-campaignTotal)/normalSubtotal*100:0,eventOrder:true,breakdown};
   }
-  let remaining=quantity,campaignTotal=0;
+  let remaining=quantity,requestedTotal=0;
   const breakdown:CampaignPriceResult['breakdown']=[];
   for(const pack of [...config.packages].sort((a,b)=>b.qty-a.qty)){
     const count=Math.floor(remaining/pack.qty);
-    if(count>0){for(let n=0;n<count;n++)breakdown.push({qty:pack.qty,unitPrice:Math.round(pack.price/pack.qty),lineTotal:pack.price,label:`${pack.qty}’li paket`});campaignTotal+=count*pack.price;remaining-=count*pack.qty;}
+    if(count>0){for(let n=0;n<count;n++)breakdown.push({qty:pack.qty,unitPrice:Math.round(pack.price/pack.qty),lineTotal:pack.price,label:`${pack.qty}’li paket`});requestedTotal+=count*pack.price;remaining-=count*pack.qty;}
   }
-  if(remaining>0){const lineTotal=remaining*config.singleItemPrice;breakdown.push({qty:remaining,unitPrice:config.singleItemPrice,lineTotal,label:'Ek ürün'});campaignTotal+=lineTotal;}
-  const savings=Math.max(0,normalSubtotal-campaignTotal);
-  return {quantity,normalSubtotal,campaignTotal,savings,discountPercent:normalSubtotal?Math.max(0,savings/normalSubtotal*100):0,eventOrder:false,breakdown};
+  if(remaining>0){const lineTotal=remaining*config.singleItemPrice;breakdown.push({qty:remaining,unitPrice:config.singleItemPrice,lineTotal,label:'Ek ürün'});requestedTotal+=lineTotal;}
+  const useNormal=requestedTotal>normalSubtotal;
+  const campaignTotal=Math.min(requestedTotal,normalSubtotal);
+  const finalBreakdown=useNormal?selected.map(p=>({qty:quantities[p.id],unitPrice:p.price,lineTotal:p.price*quantities[p.id],label:'Güncel normal fiyat'})):breakdown;
+  return {quantity,normalSubtotal,campaignTotal,savings:normalSubtotal-campaignTotal,discountPercent:normalSubtotal?(normalSubtotal-campaignTotal)/normalSubtotal*100:0,eventOrder:false,breakdown:finalBreakdown};
 }
