@@ -29,7 +29,7 @@ export function validCampaignPricing(value:unknown):value is NonNullable<Campaig
 
 export function campaignPricing(campaign:Campaign,products:Product[],quantities:Record<string,number>,eventOrder=false):CampaignPriceResult{
   const config=validCampaignPricing(campaign.pricing)?campaign.pricing:vestelCampaignDefaults;
-  const selected=products.filter(p=>p.active&&p.stock&&Number.isInteger(quantities[p.id])&&quantities[p.id]>0);
+  const selected=products.filter(p=>p.active&&p.stock&&!!p.image&&Number.isInteger(quantities[p.id])&&quantities[p.id]>0);
   if(!selected.length)throw new Error('En az bir ürün seçin.');
   if(selected.some(p=>!(p.boxEligible??/^cookie-[1-9]$/.test(p.id))))throw new Error('Kampanyaya uygun olmayan ürün seçildi.');
   const quantity=selected.reduce((sum,p)=>sum+quantities[p.id],0);
