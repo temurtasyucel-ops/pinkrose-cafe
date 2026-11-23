@@ -14,5 +14,5 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
  const c=await catalog();
  const campaign=c.campaigns.find(v=>v.slug===slug&&liveCampaign(v));
  if(!campaign)notFound();
- return <CampaignStorefront campaign={campaign} products={c.products.filter(p=>p.active&&p.stock&&(p.boxEligible??/^cookie-[1-9]$/.test(p.id)))}/>;
+ return <CampaignStorefront campaign={campaign} products={c.products.filter(p=>p.active&&p.stock&&(p.boxEligible??/^cookie-[1-9]$/.test(p.id)))} whatsapp={c.settings.whatsapp}/>;
 }
