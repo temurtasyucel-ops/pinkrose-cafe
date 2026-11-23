@@ -5,8 +5,7 @@ import {liveCampaign} from '@/lib/types';
 import CampaignStorefront from '@/components/campaign-storefront';
 
 export const dynamic='force-dynamic';
-export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{
- const {slug}=await params;
+export async function generateMetadata():Promise<Metadata>{
  return {title:'Vestel Çalışanlarına Özel | Pink Rose Cafe',robots:{index:false,follow:false}};
 }
 export default async function CampaignPage({params}:{params:Promise<{slug:string}>}){
