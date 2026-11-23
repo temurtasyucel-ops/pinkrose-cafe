@@ -29,12 +29,12 @@ export function validCampaignPricing(value:unknown):value is NonNullable<Campaig
 
 export function campaignPricing(campaign:Campaign,products:Product[],quantities:Record<string,number>,eventOrder=false):CampaignPriceResult{
   const config=validCampaignPricing(campaign.pricing)?campaign.pricing:vestelCampaignDefaults;
+  // Seçim listesini doğrudan ürün kataloğuyla eşleştir; görsel ve boxEligible şartı yoktur.
   const requested=Object.entries(quantities).filter(([,qty])=>Number.isInteger(qty)&&qty>0);
-  // Kampanyada tüm aktif ve stokta olan katalog ürünleri seçilebilir.
-  // Ürün görseli veya boxEligible niteliği kampanya fiyatlandırmasını kısıtlamaz.
-  const selected=products.filter(p=>p.active&&p.stock&&Number.isInteger(quantities[p.id])&&quantities[p.id]>0);
-  if(!selected.length)throw new Error('En az bir ürün seçin.');
-  if(selected.length!==requested.length)throw new Error('Kampanyaya uygun olmayan ürün seçildi.');
+  if(!requested.length)throw new Error('En az bir ürün seçin.');
+  const productById=new Map(products.map(p=>[p.id,p]));
+  const selected=requested.map(([id])=>productById.get(id)).filter((p):p is Product=>!!p&&p.active&&p.stock);
+  if(selected.length!==requested.length)throw new Error('Seçtiğin ürünlerden biri artık aktif veya stokta değil. Sayfayı yenileyip tekrar dene.');
   const quantity=selected.reduce((sum,p)=>sum+quantities[p.id],0);
   if(quantity>100)throw new Error('Tek siparişte en fazla 100 ürün seçilebilir.');
   const normalSubtotal=selected.reduce((sum,p)=>sum+p.price*quantities[p.id],0);
