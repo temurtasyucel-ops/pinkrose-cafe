@@ -13,5 +13,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
  const c=await catalog();
  const campaign=c.campaigns.find(v=>v.slug===slug&&liveCampaign(v));
  if(!campaign)notFound();
- return <CampaignStorefront campaign={campaign} products={c.products.filter(p=>p.active&&p.stock&&!!p.image&&(p.boxEligible??/^cookie-[1-9]$/.test(p.id)))} whatsapp={c.settings.whatsapp}/>;
+ // Kampanya vitrini tüm aktif ve stokta olan ürünleri gösterir.
+ // Görsel veya boxEligible alanı ürünün listelenmesini engellemez.
+ return <CampaignStorefront campaign={campaign} products={c.products.filter(p=>p.active&&p.stock)} whatsapp={c.settings.whatsapp}/>;
 }
