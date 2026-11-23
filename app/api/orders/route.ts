@@ -39,7 +39,7 @@ export async function POST(req:Request){let stage='request';try{
  stage='lookup';const old=await orderByKey(b.key);if(old){stage='finalize';if(orderBooking(old))await settleCalendar('hold:new:'+b.key,old.id);return result(old);}
  stage='validation';
  const s=(v:unknown,n=500)=>typeof v==='string'?v.trim().slice(0,n):'';
- const customer=s(b.customer,100),phone=s(b.phone,25).replace(/\D/g,'');
+ const customer=s(b.customer,100),phone=s(b.phone,25).replace(/\D/g,''),vestelSicilNo=s(b.vestelSicilNo,30);
  if(customer.length<2||!/^(0?5\d{9}|905\d{9})$/.test(phone))throw Error('Adınızı ve geçerli bir cep telefonu numarasını girin.');
  stage='rate_limit';if(!await rateLimit(req,'orders-phone',5,3600,normalizePhoneForRateLimit(phone)))return Response.json({error:'Bu telefon numarasıyla kısa sürede çok fazla sipariş talebi oluşturuldu. Lütfen daha sonra tekrar deneyin.'},{status:429});
  stage='validation';
@@ -69,7 +69,7 @@ export async function POST(req:Request){let stage='request';try{
  const percent=campaignPercent(c,pricingNow),packageDiscount=priceBasket(c,items).packageDiscount;
  const discount=b.campaignSlug!==undefined?campaignDiscount:packageDiscount+Math.round((subtotal-packageDiscount)*percent/100),deliveryFeePending=b.type==='Teslimat'&&!!c.settings.deliveryQuoted,deliveryFee=b.type==='Teslimat'&&!deliveryFeePending?c.settings.deliveryFee:0;
  const id=b.key,number='PR-'+id.slice(0,8).toUpperCase();
- const order:Order={trackingToken:crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().replaceAll('-',''),preferredDate,capacityQty,gift:cleanGift(b.gift),language:b.language==='en'?'en':'tr',id,number,customer,phone,type:b.type,city:b.type==='Teslimat'?b.city:undefined,deliveryFeePending,address:s(b.address),note:s(b.note),date:preferred,items,subtotal,discount,deliveryFee,total:subtotal-discount+deliveryFee,...(campaignSnapshot?{campaign:campaignSnapshot}:{}),status:'Onay bekliyor',created:new Date().toISOString(),demo:c.settings.demo};
+ const order:Order={vestelSicilNo:vestelSicilNo||undefined,trackingToken:crypto.randomUUID().replaceAll('-','')+crypto.randomUUID().replaceAll('-',''),preferredDate,capacityQty,gift:cleanGift(b.gift),language:b.language==='en'?'en':'tr',id,number,customer,phone,type:b.type,city:b.type==='Teslimat'?b.city:undefined,deliveryFeePending,address:s(b.address),note:s(b.note),date:preferred,items,subtotal,discount,deliveryFee,total:subtotal-discount+deliveryFee,...(campaignSnapshot?{campaign:campaignSnapshot}:{}),status:'Onay bekliyor',created:new Date().toISOString(),demo:c.settings.demo};
  const booking=orderBooking(order),hold='hold:new:'+b.key;
  stage='capacity';if(booking)await reserveCalendar(hold,booking);
  // Keep a reservation on uncertain storage failures. Retrying uses the same key;
