@@ -6,7 +6,7 @@ import CampaignStorefront from '@/components/campaign-storefront';
 
 export const dynamic='force-dynamic';
 export async function generateMetadata():Promise<Metadata>{
- return {title:'Vestel Çalışanlarına Özel | Pink Rose Cafe',robots:{index:false,follow:false}};
+ return {title:'Vestel Çalışanlarına Özel %15’e Varan İndirim | Pink Rose Cafe',description:'Callebaut Belçika çikolatası ve %100 yayık tereyağıyla hazırlanan el yapımı kurabiyelerde Vestel çalışanlarına özel paket fiyatları.',robots:{index:false,follow:false}};
 }
 export default async function CampaignPage({params}:{params:Promise<{slug:string}>}){
  const {slug}=await params;
@@ -15,5 +15,5 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
  if(!campaign)notFound();
  // Kampanya vitrini tüm aktif ve stokta olan ürünleri gösterir.
  // Görsel veya boxEligible alanı ürünün listelenmesini engellemez.
- return <CampaignStorefront campaign={campaign} products={c.products.filter(p=>p.active&&p.stock)} whatsapp={c.settings.whatsapp}/>;
+ return <CampaignStorefront campaign={campaign} products={c.products.filter(p=>p.active&&p.stock)} whatsapp={c.settings.whatsapp} bulkPricing={c.bulkPricing} deliveryText={c.settings.deliveryText} pickupAddress={c.settings.pickupAddress} preparationText={c.settings.preparationText}/>;
 }
