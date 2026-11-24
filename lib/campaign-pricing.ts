@@ -1,4 +1,5 @@
 import type {Campaign,Product} from './types';
+import {boxEligible} from './pricing';
 
 export const vestelCampaignDefaults={
   slug:'vestel',
@@ -27,7 +28,7 @@ export function validCampaignPricing(value:unknown):value is NonNullable<Campaig
     p.packages.every((v,i)=>v.qty===[2,4,6,8][i]&&Number.isSafeInteger(v.price)&&v.price>0);
 }
 
-export function campaignPricing(campaign:Campaign,products:Product[],quantities:Record<string,number>,eventOrder=false):CampaignPriceResult{
+export function campaignPricing(campaign:Campaign,products:Product[],quantities:Record<string,number>,eventOrder=false,bulkPricing:{minQty:number;unitPrice:number}={minQty:2,unitPrice:16000}):CampaignPriceResult{
   const config=validCampaignPricing(campaign.pricing)?campaign.pricing:vestelCampaignDefaults;
   // Seçim listesini doğrudan ürün kataloğuyla eşleştir; görsel ve boxEligible şartı yoktur.
   const requested=Object.entries(quantities).filter(([,qty])=>Number.isInteger(qty)&&qty>0);
@@ -37,7 +38,9 @@ export function campaignPricing(campaign:Campaign,products:Product[],quantities:
   if(selected.length!==requested.length)throw new Error('Seçtiğin ürünlerden biri artık aktif veya stokta değil. Sayfayı yenileyip tekrar dene.');
   const quantity=selected.reduce((sum,p)=>sum+quantities[p.id],0);
   if(quantity>100)throw new Error('Tek siparişte en fazla 100 ürün seçilebilir.');
-  const normalSubtotal=selected.reduce((sum,p)=>sum+p.price*quantities[p.id],0);
+  // Normal comparison follows the same quantity-price rule as the main storefront.
+  const eligibleQuantity=selected.filter(boxEligible).reduce((sum,p)=>sum+quantities[p.id],0);
+  const normalSubtotal=selected.reduce((sum,p)=>sum+(boxEligible(p)&&eligibleQuantity>=bulkPricing.minQty?Math.min(p.price,bulkPricing.unitPrice):p.price)*quantities[p.id],0);
   if(eventOrder){
     if(quantity<config.eventMinQty)throw new Error(`Etkinlik siparişi en az ${config.eventMinQty} adet olmalıdır.`);
     const requestedTotal=quantity*config.eventUnitPrice;
