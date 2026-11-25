@@ -1,5 +1,5 @@
 import type {Campaign,Product} from './types';
-import {boxEligible} from './pricing';
+import {boxEligible,priceBasket} from './pricing';
 
 export const vestelCampaignDefaults={
   slug:'vestel',
@@ -39,8 +39,8 @@ export function campaignPricing(campaign:Campaign,products:Product[],quantities:
   const quantity=selected.reduce((sum,p)=>sum+quantities[p.id],0);
   if(quantity>100)throw new Error('Tek siparişte en fazla 100 ürün seçilebilir.');
   // Normal comparison follows the same quantity-price rule as the main storefront.
-  const eligibleQuantity=selected.filter(boxEligible).reduce((sum,p)=>sum+quantities[p.id],0);
-  const normalSubtotal=selected.reduce((sum,p)=>sum+(boxEligible(p)&&eligibleQuantity>=bulkPricing.minQty?Math.min(p.price,bulkPricing.unitPrice):p.price)*quantities[p.id],0);
+  const normalQuote=priceBasket({products,bulkPricing} as any,selected.map(p=>({id:p.id,price:p.price,qty:quantities[p.id]})));
+  const normalSubtotal=normalQuote.total;
   if(eventOrder){
     if(quantity<config.eventMinQty)throw new Error(`Etkinlik siparişi en az ${config.eventMinQty} adet olmalıdır.`);
     const requestedTotal=quantity*config.eventUnitPrice;
