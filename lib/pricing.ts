@@ -38,7 +38,7 @@ export function basketOffer(c:Catalog,cart:Record<string,number>){
  const count=products.reduce((n,p)=>n+cart[p.id],0),tiers=pricingTiers(c.bulkPricing);
  const quote=priceBasket(c,products.map(p=>({id:p.id,price:p.price,qty:cart[p.id]})));
  const savings=quote.packageDiscount;
- if(!savings)return null;
+ if(!savings&&count>=tiers[0].minQty)return null;
  return {remaining:Math.max(0,tiers[0].minQty-count),savings,unitPrice:tiers[0].unitPrice,tiers,extraUnitPrice:c.bulkPricing.extraUnitPrice};
 }
 export function seasonalProducts(c:Catalog){return c.products.filter(p=>p.seasonal&&p.active&&p.stock);}

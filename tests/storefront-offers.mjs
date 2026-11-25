@@ -13,7 +13,7 @@ const cheap={...p,id:'cheap',price:12000};
 assert.equal(basketOffer({...c,products:[cheap]},{cheap:2}),null);
 assert.deepEqual(basketOffer({...c,products:[p,cheap]},{'cookie-1':1,cheap:1}),{remaining:0,savings:2000,unitPrice:15000,tiers:[{minQty:2,unitPrice:15000}],extraUnitPrice:undefined});
 for(const override of [{active:false},{stock:false}])assert.equal(basketOffer({...c,products:[{...p,...override}]},{'cookie-1':2}),null);
-assert.deepEqual(basketOffer({...c,bulkPricing:{minQty:1,unitPrice:15000}},{'cookie-1':1}),{remaining:0,savings:2000,unitPrice:15000});
+assert.deepEqual(basketOffer({...c,bulkPricing:{minQty:1,unitPrice:15000}},{'cookie-1':1}),{remaining:0,savings:2000,unitPrice:15000,tiers:[{minQty:1,unitPrice:15000}],extraUnitPrice:undefined});
 assert.equal(seasonalProducts(c).length,0);
 assert.deepEqual(seasonalProducts({...c,products:[{...p,seasonal:true},{...p,seasonal:true,stock:false},{...p,seasonal:true,active:false}]}),[{...p,seasonal:true}]);
 console.log('PASS: quantity nudges follow mixed baskets, exclusions, cheaper items, availability and editable rules; seasonal announcements require active stocked selections.');
