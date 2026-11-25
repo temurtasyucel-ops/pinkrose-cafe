@@ -76,7 +76,6 @@ export function priceBasket(c:Catalog,items:{id:string;price:number;qty:number}[
 export function boxPriceRange(c:Catalog,qty:number){
  const products=c.products.filter(p=>p.active&&p.stock&&boxEligible(p));
  if(!products.length)return null;
- const rates=pricingTiers(c.bulkPricing);
  const unit=qty===1?products.map(p=>p.price):products.map(p=>Math.min(p.price,tierUnitPrice(qty,c.bulkPricing)??p.price));
  const min=Math.min(...unit),max=Math.max(...unit);
  return {min:bulkPackagePrice(qty,c.bulkPricing),max:bulkPackagePrice(qty,c.bulkPricing),unitMin:min,unitMax:max};
