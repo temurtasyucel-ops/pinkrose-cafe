@@ -1,5 +1,5 @@
 import type {Campaign,Product} from './types';
-import {boxEligible,priceBasket} from './pricing';
+import {priceBasket} from './pricing';
 
 export const vestelCampaignDefaults={
   slug:'vestel',
