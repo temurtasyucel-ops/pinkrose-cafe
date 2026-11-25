@@ -13,7 +13,7 @@ export default function QuantityBanner({catalog,ready,language,money}:{catalog:C
   return <section className={styles.banner} aria-label={en?'Cookie quantity offer':'Kurabiye adet avantajı'}>
     <div className={styles.copy}>
       <p>{offer.minQty>1&&<><span>{en?'Single':'Tekli'}: {range(offer.singleMin,offer.singleMax)}</span><span aria-hidden="true"> · </span></>}
-        <b>{en?`Quantity prices: `:`Adet fiyatları: `}{ladder}{offer.extraUnitPrice?` · 8+ ek: ${money(offer.extraUnitPrice)}`:''}</b>
+        <b>{en?`Quantity prices: `:`Adet fiyatları: `}{ladder}{offer.extraUnitPrice?` · ${en?'Extra after 8':'8+ ek'}: ${money(offer.extraUnitPrice)}`:''}</b>
       </p>
       <small>{en?'Mix your favourites. Applies to box-eligible varieties.':'Çeşitleri dilediğin gibi karıştır. Kutuya dahil çeşitlerde geçerlidir.'}</small>
     </div>
