@@ -9,10 +9,11 @@ export default function QuantityBanner({catalog,ready,language,money}:{catalog:C
   if(!offer)return null;
   const en=language==='en';
   const range=(min:number,max:number)=>min===max?money(min):`${money(min)}–${money(max)}`;
+  const ladder=offer.tiers.map((tier)=>`${tier.minQty===2?'2–3':tier.minQty===4?'4–5':tier.minQty===6?'6–7':'8'}: ${money(tier.unitPrice)}`).join(' · ');
   return <section className={styles.banner} aria-label={en?'Cookie quantity offer':'Kurabiye adet avantajı'}>
     <div className={styles.copy}>
       <p>{offer.minQty>1&&<><span>{en?'Single':'Tekli'}: {range(offer.singleMin,offer.singleMax)}</span><span aria-hidden="true"> · </span></>}
-        <b>{en?`Buy ${offer.minQty} or more: `:`${offer.minQty} adet ve üzeri: `}{range(offer.discountMin,offer.discountMax)} / {en?'cookie':'adet'}</b>
+        <b>{en?`Quantity prices: `:`Adet fiyatları: `}{ladder}{offer.extraUnitPrice?` · 9+: ${money(offer.extraUnitPrice)}`:''}</b>
       </p>
       <small>{en?'Mix your favourites. Applies to box-eligible varieties.':'Çeşitleri dilediğin gibi karıştır. Kutuya dahil çeşitlerde geçerlidir.'}</small>
     </div>
