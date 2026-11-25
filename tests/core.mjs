@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {cleanCart,submissionKey} from '../lib/cart.ts';
-import {priceBasket,validBulkPricing} from '../lib/pricing.ts';
+import {priceBasket,validBulkPricing,defaultBulkPricing,bulkPackagePrice} from '../lib/pricing.ts';
 import {deliveryQuote,filterOrders,customerWhatsApp,orderSummary,customerOrderMessage,paymentWhatsApp} from '../lib/types.ts';
 import {readJson} from '../lib/http.ts';
 assert.deepEqual(cleanCart({'cookie-1':100,'cookie-2':-1,'cookie-3':1.2,'invalid':2}),{'cookie-1':50});
@@ -21,6 +21,15 @@ assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:1,price:17000},{id:'other',
 assert.equal(priceBasket(catalog,[{id:'cookie-1',qty:2,price:10000}]).packageDiscount,0);
 assert.equal(priceBasket({...catalog,bulkPricing:{minQty:3,unitPrice:14000}},[{id:'cookie-1',qty:2,price:17000}]).packageDiscount,0);
 assert.equal(priceBasket({...catalog,bulkPricing:{minQty:3,unitPrice:14000}},[{id:'cookie-1',qty:3,price:17000}]).packageDiscount,9000);
+const tierCatalog={products:Array.from({length:9},(_,i)=>({id:'cookie-'+(i+1),active:true,stock:true,boxEligible:true})),packages:[],bulkPricing:defaultBulkPricing};
+const expected=[20000,36000,54000,68000,85000,99000,115500,128000,143000,158000];
+for(let qty=1;qty<=10;qty++){
+ const quote=priceBasket(tierCatalog,[{id:'cookie-1',qty,price:20000}]);
+ assert.equal(quote.total,expected[qty-1],`tier total at qty ${qty}`);
+}
+assert.deepEqual([2,4,6,8].map(q=>bulkPackagePrice(q,defaultBulkPricing)),[36000,68000,99000,128000]);
+assert.equal(bulkPackagePrice(9,defaultBulkPricing),143000);
+assert.equal(bulkPackagePrice(10,defaultBulkPricing),158000);
 const o={number:'PR-TEST',customer:'İPEK ŞEN',phone:'05060584705',type:'Teslimat',subtotal:32000,discount:2000,total:30000,status:'Yeni',deliveryFee:0,deliveryFeePending:true,demo:false};
 const quoted=deliveryQuote(o,7500);assert.equal(quoted.total,37500);assert.equal(deliveryQuote(quoted,5000).total,35000);
 assert.equal(deliveryQuote(quoted,0).total,30000);assert.equal(quoted.deliveryFeePending,false);
