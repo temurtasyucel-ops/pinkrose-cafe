@@ -19,7 +19,7 @@ export function bulkPackagePrice(qty:number,rule:Catalog['bulkPricing']):number{
   if(qty<=3)return qty*tiers[0].unitPrice;
   if(qty<=5)return qty*tiers[1].unitPrice;
   if(qty<=7)return qty*tiers[2].unitPrice;
-  return qty===8?qty*tiers[3].unitPrice:qty*tiers[3].unitPrice+(qty-8)*(rule.extraUnitPrice??tiers[3].unitPrice);
+  return qty===8?qty*tiers[3].unitPrice:8*tiers[3].unitPrice+(qty-8)*(rule.extraUnitPrice??tiers[3].unitPrice);
  }
  const unit=tierUnitPrice(qty,rule);
  return unit===null?0:qty*unit;
