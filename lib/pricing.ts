@@ -76,7 +76,15 @@ export function priceBasket(c:Catalog,items:{id:string;price:number;qty:number}[
 export function boxPriceRange(c:Catalog,qty:number){
  const products=c.products.filter(p=>p.active&&p.stock&&boxEligible(p));
  if(!products.length)return null;
- const unit=qty===1?products.map(p=>p.price):products.map(p=>Math.min(p.price,tierUnitPrice(qty,c.bulkPricing)??p.price));
- const min=Math.min(...unit),max=Math.max(...unit);
- return {min:bulkPackagePrice(qty,c.bulkPricing),max:bulkPackagePrice(qty,c.bulkPricing),unitMin:min,unitMax:max};
+ const totals=products.map(p=>{
+  if(!c.bulkPricing.tiers)return qty*(qty>=c.bulkPricing.minQty?Math.min(p.price,c.bulkPricing.unitPrice):p.price);
+  if(qty===1)return p.price;
+  const tiers=pricingTiers(c.bulkPricing);
+  if(qty<=3)return qty*Math.min(p.price,tiers[0].unitPrice);
+  if(qty<=5)return qty*Math.min(p.price,tiers[1].unitPrice);
+  if(qty<=7)return qty*Math.min(p.price,tiers[2].unitPrice);
+  return 8*Math.min(p.price,tiers[3].unitPrice)+(qty-8)*Math.min(p.price,c.bulkPricing.extraUnitPrice??tiers[3].unitPrice);
+ });
+ const units=products.map((p,i)=>qty?totals[i]/qty:p.price);
+ return {min:Math.min(...totals),max:Math.max(...totals),unitMin:Math.min(...units),unitMax:Math.max(...units)};
 }
