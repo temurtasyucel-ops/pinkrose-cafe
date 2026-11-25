@@ -6,7 +6,7 @@ import CampaignStorefront from '@/components/campaign-storefront';
 
 export const dynamic='force-dynamic';
 export async function generateMetadata():Promise<Metadata>{
- return {title:'Vestel Çalışanlarına Özel İndirimler | Pink Rose Cafe',description:'Pink Rose Cafe kampanya ürünleri ve güncel paket fiyatları.',robots:{index:false,follow:false}};
+ return {title:'Vestel Çalışanlarına Özel İndirimler | Pink Rose Cafe',description:'Callebaut Belçika çikolatası ve %100 yayık tereyağıyla hazırlanan el yapımı kurabiyelerde Vestel çalışanlarına özel paket fiyatları.',robots:{index:false,follow:false}};
 }
 export default async function CampaignPage({params}:{params:Promise<{slug:string}>}){
  const {slug}=await params;
