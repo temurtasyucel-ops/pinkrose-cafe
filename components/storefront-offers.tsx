@@ -1,13 +1,14 @@
 import type {Catalog,Product} from '@/lib/types';
 import type {Language} from '@/lib/i18n';
 import {localContent} from '@/lib/i18n';
-import {basketOffer,boxEligible,seasonalProducts} from '@/lib/pricing';
+import {basketOffer,boxEligible,seasonalProducts,pricingTiers} from '@/lib/pricing';
 import styles from './storefront-offers.module.css';
 type Common={catalog:Catalog;ready:boolean;language:Language;money:(price:number)=>string};
 export function ProductOffer({catalog,ready,language,money,product}:{product:Product}&Common){
- if(!ready||!product.active||!product.stock||!boxEligible(product)||product.price<=catalog.bulkPricing.unitPrice)return null;
- const {minQty,unitPrice}=catalog.bulkPricing;
- return <small className={styles.label+' product-offer'}>{language==='en'?`${minQty} or more: ${money(unitPrice)} / cookie`:`${minQty} adet ve üzeri: ${money(unitPrice)} / adet`}</small>;
+ if(!ready||!product.active||!product.stock||!boxEligible(product)||product.price<=pricingTiers(catalog.bulkPricing)[0].unitPrice)return null;
+ const tiers=pricingTiers(catalog.bulkPricing);
+ const ladder=tiers.map((tier,i)=>`${tier.minQty===2?'2–3':tier.minQty===4?'4–5':tier.minQty===6?'6–7':'8'}: ${money(Math.min(product.price,tier.unitPrice))}`).join(' · ');
+ return <small className={styles.label+' product-offer'}>{language==='en'?`Quantity prices: ${ladder}`:`Adet fiyatları: ${ladder} · 9+: ${money(Math.min(product.price,catalog.bulkPricing.extraUnitPrice??tiers[3].unitPrice))}`}</small>;
 }
 export function CartOffer({catalog,ready,language,money,cart,onExplore}:Common&{cart:Record<string,number>;onExplore:()=>void}){
  const offer=ready?basketOffer(catalog,cart):null;
