@@ -2,6 +2,7 @@ import type {Catalog,Product} from './types';
 export const defaultBulkPricing={minQty:2,unitPrice:18000,tiers:[{minQty:2,unitPrice:18000},{minQty:4,unitPrice:17000},{minQty:6,unitPrice:16500},{minQty:8,unitPrice:16000}],extraUnitPrice:15000};
 export type PricingTier={minQty:number;unitPrice:number};
 export type BulkPricing=typeof defaultBulkPricing;
+export function normalizeBulkPricing(value:unknown):Catalog['bulkPricing']{const v=value as Catalog['bulkPricing']|null;if(!validBulkPricing(v)||!v.tiers)return defaultBulkPricing;return {...defaultBulkPricing,...v};}
 export function boxEligible(p:Product){return p.boxEligible??/^cookie-[1-7]$/.test(p.id);}
 export function pricingTiers(rule:Catalog['bulkPricing']):PricingTier[]{return Array.isArray(rule.tiers)&&rule.tiers.length===4?[...rule.tiers].sort((a,b)=>a.minQty-b.minQty):[{minQty:rule.minQty,unitPrice:rule.unitPrice}];}
 export function tierUnitPrice(qty:number,rule:Catalog['bulkPricing']):number|null{
