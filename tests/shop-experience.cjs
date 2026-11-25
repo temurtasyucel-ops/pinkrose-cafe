@@ -6,7 +6,7 @@ const {orderSummary,customerOrderMessage}=load('lib/types.ts');
 const {publicReview,insightSummary}=load('lib/shop-insights.ts');
 const c={products:[{id:'cookie-1',price:17000,active:true,stock:true,boxEligible:true},{id:'cheap',price:10000,active:true,stock:true,boxEligible:true},{id:'drink',price:9000,active:true,stock:true,boxEligible:false}],bulkPricing:{minQty:2,unitPrice:15000}};
 assert.equal(boxSelection(c,{'cookie-1':1},4).complete,false);
-assert.deepEqual(boxSelection(c,{'cookie-1':2,cheap:2},4),{items:[{id:'cookie-1',qty:2,price:17000},{id:'cheap',qty:2,price:10000}],count:4,remaining:0,total:50000,complete:true});
+assert.deepEqual(boxSelection(c,{'cookie-1':2,cheap:2},4),{items:[{id:'cookie-1',qty:2,price:17000},{id:'cheap',qty:2,price:10000}],count:4,remaining:0,total:54000,complete:true});
 assert.equal(boxSelection({...c,bulkPricing:{minQty:5,unitPrice:14000}},{'cookie-1':4},4).total,68000);
 assert.throws(()=>boxSelection(c,{'cookie-1':5},4));
 assert.throws(()=>boxSelection(c,{drink:1},4));

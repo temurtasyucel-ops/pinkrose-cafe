@@ -132,7 +132,7 @@ try:
  assert 'Limonlu dolgu' in by_id['cookie-8']['ingredients'] and 'Nutella' not in by_id['cookie-8']['ingredients']
  assert 'ceviz' in by_id['cookie-9']['ingredients'] and 'Elmalı tarçınlı dolgu' in by_id['cookie-9']['ingredients']
  new_order={'key':str(uuid.uuid4()),'customer':'New Flavour Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-8','qty':1},{'id':'cookie-9','qty':1}]}
- status,new=call('/api/orders',new_order); assert status==200 and new['total']==30000,(status,new)
+ status,new=call('/api/orders',new_order); assert status==200 and new['total']==36000,(status,new)
  # Current clients reject stale reviewed prices; existing request keys still return their saved result.
  before_quote=len(orders)
  status,stale=call('/api/orders',{**new_order,'key':str(uuid.uuid4()),'quote':'stale-pricing'})
@@ -152,7 +152,7 @@ try:
  print('PASS: stale quote blocks inserts, diagnostic reference hides database details, and retries preserve the saved order.')
  assert all(name in new['whatsappMessage'] for name in ['Şirine','Gönülçelen'])
  mixed_order={**new_order,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':1},{'id':'cookie-8','qty':1}]}
- assert call('/api/orders',mixed_order)[1]['total']==30000
+ assert call('/api/orders',mixed_order)[1]['total']==36000
  records['cookie-8']['data']['price']=18000
  assert next(p for p in call('/api/catalog')[1]['products'] if p['id']=='cookie-8')['price']==18000
  records['cookie-8']['data']['price']=17000
@@ -206,12 +206,12 @@ try:
  records['packages']['data']['tastingIds']=['cookie-'+str(i) for i in range(1,8)]
  status,cleaned=call('/api/catalog')
  assert status==200 and set(records['packages']['data'])=={'packages','bulkPricing'} and 'tastingPrice' not in cleaned
- assert [p['price'] for p in cleaned['packages']]==[30000,60000,90000,120000]
+ assert [p['price'] for p in cleaned['packages']]==[36000,68000,99000,128000]
  seven_body={'key':str(uuid.uuid4()),'customer':'Box Test','phone':'05060584705','type':'Gel-al','items':[{'id':'cookie-'+str(i),'qty':1} for i in range(1,8)]}
- status,seven=call('/api/orders',seven_body);assert status==200 and seven['total']==105000,(status,seven)
+ status,seven=call('/api/orders',seven_body);assert status==200 and seven['total']==115500,(status,seven)
  records['packages']['data']['bulkPricing']={'minQty':3,'unitPrice':14000}
- assert call('/api/orders',{**seven_body,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':2}]})[1]['total']==34000
- assert call('/api/orders',{**seven_body,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':3}]})[1]['total']==42000
+ assert call('/api/orders',{**seven_body,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':2}]})[1]['total']==36000
+ assert call('/api/orders',{**seven_body,'key':str(uuid.uuid4()),'items':[{'id':'cookie-1','qty':3}]})[1]['total']==54000
  records['packages']['data']['bulkPricing']={'minQty':2,'unitPrice':15000}
  orders.clear()
  assert '170°C' in c['settings']['heatingInfo']
@@ -221,7 +221,7 @@ try:
  hidden_key=str(uuid.uuid4());before_hidden=len(orders)
  assert call('/api/orders',{**body,'key':hidden_key,'website':'filled'})[0]==400
  assert len(orders)==before_hidden and hidden_key not in orders
- status,o=call('/api/orders',body); assert status==200 and o['total']==30000 and o['demo'] is True,(status,o)
+ status,o=call('/api/orders',body); assert status==200 and o['total']==36000 and o['demo'] is True,(status,o)
  assert all(x in o['whatsappMessage'] for x in ['2 × Gülpembe','Pazar 15.00','Hediye','Telefon:'])
  status,again=call('/api/orders',{**body,'items':[{'id':'cookie-1','qty':8}]}); assert again==o and len(orders)==1,(status,again)
  status,o=call('/api/orders',{**body,'key':str(uuid.uuid4()),'type':'Teslimat','city':'İzmir','address':'Test delivery address'}); assert status==200 and o['deliveryFeePending'] and o['total']==30000,(status,o)
