@@ -8,7 +8,7 @@ export function ProductOffer({catalog,ready,language,money,product}:{product:Pro
  if(!ready||!product.active||!product.stock||!boxEligible(product)||product.price<=pricingTiers(catalog.bulkPricing)[0].unitPrice)return null;
  const tiers=pricingTiers(catalog.bulkPricing);
  const ladder=tiers.map((tier,i)=>`${tier.minQty===2?'2–3':tier.minQty===4?'4–5':tier.minQty===6?'6–7':'8'}: ${money(Math.min(product.price,tier.unitPrice))}`).join(' · ');
- return <small className={styles.label+' product-offer'}>{language==='en'?`Quantity prices: ${ladder}`:`Adet fiyatları: ${ladder} · 9+: ${money(Math.min(product.price,catalog.bulkPricing.extraUnitPrice??tiers[3].unitPrice))}`}</small>;
+ return <small className={styles.label+' product-offer'}>{language==='en'?`Quantity prices: ${ladder}`:`Adet fiyatları: ${ladder} · 8+ ek: ${money(Math.min(product.price,catalog.bulkPricing.extraUnitPrice??tiers[3].unitPrice))}`}</small>;
 }
 export function CartOffer({catalog,ready,language,money,cart,onExplore}:Common&{cart:Record<string,number>;onExplore:()=>void}){
  const offer=ready?basketOffer(catalog,cart):null;
