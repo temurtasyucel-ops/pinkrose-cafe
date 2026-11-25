@@ -29,8 +29,8 @@ export function quantityOffer(c:Catalog){
  const products=c.products.filter(p=>p.active&&p.stock&&boxEligible(p));
  const tiers=pricingTiers(c.bulkPricing);
  if(!products.length||!tiers.length||!products.some(p=>p.price>tiers[0].unitPrice))return null;
- const prices=products.map(p=>p.price);
- return {minQty:tiers[0].minQty,singleMin:Math.min(...prices),singleMax:Math.max(...prices),discountMin:Math.min(...products.map(p=>Math.min(p.price,tiers[0].unitPrice))),discountMax:Math.min(...products.map(p=>Math.min(p.price,tiers[0].unitPrice))),tiers,extraUnitPrice:c.bulkPricing.extraUnitPrice};
+ const prices=products.map(p=>p.price),discounted=products.map(p=>Math.min(p.price,tiers[0].unitPrice));
+ return {minQty:tiers[0].minQty,singleMin:Math.min(...prices),singleMax:Math.max(...prices),discountMin:Math.min(...discounted),discountMax:Math.max(...discounted),tiers,extraUnitPrice:c.bulkPricing.extraUnitPrice};
 }
 export function basketOffer(c:Catalog,cart:Record<string,number>){
  const products=c.products.filter(p=>p.active&&p.stock&&boxEligible(p)&&cart[p.id]>0);
