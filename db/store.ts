@@ -9,7 +9,7 @@ import {setConfirmedSchedule,recordStatusChange} from '@/lib/order-planning';
 import {sortedProducts,validateProductOrder} from '@/lib/product-order';
 import {service} from '@/lib/supabase/service';
 import {orderStatus,deliveryQuote,liveCampaign} from '@/lib/types';
-import {defaultBulkPricing,validBulkPricing} from '@/lib/pricing';
+import {defaultBulkPricing,validBulkPricing,normalizeBulkPricing,bulkPackagePrice} from '@/lib/pricing';
 import {seed} from '@/lib/seed';
 import type {Catalog,Order,Product,Campaign} from '@/lib/types';
 
@@ -31,9 +31,9 @@ export async function catalog(all=false):Promise<Catalog>{
   const products=rows.filter(r=>r.kind==='product').map(r=>({...r.data,flavourNotes:r.data.flavourNotes??flavourDefaults[r.id]??'',calories:calorieEstimate(r.data as Product)}) as Product);
   const orderedProducts=sortedProducts(products,record('product-order')).filter(p=>all || p.active).map(p=>all?p:{...p,stock:productAvailable(p)});
   const packageRecord=record('packages');
-  const bulkPricing=validBulkPricing(packageRecord.bulkPricing)?packageRecord.bulkPricing:defaultBulkPricing;
-  const packageData={packages:packageRecord.packages.map((p:Catalog['packages'][number])=>({...p,price:p.qty*bulkPricing.unitPrice})),bulkPricing};
-  if(!validBulkPricing(packageRecord.bulkPricing)||Object.keys(packageRecord).some(key=>!['packages','bulkPricing'].includes(key))||packageRecord.packages.some((p:Catalog['packages'][number])=>p.price!==p.qty*bulkPricing.unitPrice)){
+  const bulkPricing=normalizeBulkPricing(packageRecord.bulkPricing);
+  const packageData={packages:packageRecord.packages.map((p:Catalog['packages'][number])=>({...p,price:bulkPackagePrice(p.qty,bulkPricing)})),bulkPricing};
+  if(!validBulkPricing(packageRecord.bulkPricing)||!packageRecord.bulkPricing.tiers||Object.keys(packageRecord).some(key=>!['packages','bulkPricing'].includes(key))||packageRecord.packages.some((p:Catalog['packages'][number])=>p.price!==bulkPackagePrice(p.qty,bulkPricing))){
     const {error:cleanupError}=await service().from('records').update({data:packageData}).eq('id','packages').eq('data',JSON.stringify(packageRecord));
     check(cleanupError);
   }
