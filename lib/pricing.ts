@@ -53,8 +53,10 @@ export function basketLines(c:Catalog,items:{id:string;price:number;qty:number}[
  const rule=c.bulkPricing,tiers=pricingTiers(rule);
  const expanded=items.flatMap(item=>eligible.has(item.id)?Array.from({length:item.qty},()=>({id:item.id,price:item.price,eligible:true})):Array.from({length:item.qty},()=>({id:item.id,price:item.price,eligible:false})));
  const unitRates=expanded.map((item,index)=>{
-  if(!item.eligible||count<rule.minQty||!rule.tiers)return item.price;
-  const rate=count<=3?tiers[0].unitPrice:count<=5?tiers[1].unitPrice:count<=7?tiers[2].unitPrice:count===8?tiers[3].unitPrice:index<8?tiers[3].unitPrice:(rule.extraUnitPrice??tiers[3].unitPrice);
+  if(!item.eligible||count<rule.minQty)return item.price;
+  if(!rule.tiers)return Math.min(item.price,rule.unitPrice);
+  const eligibleIndex=expanded.slice(0,index+1).filter(x=>x.eligible).length-1;
+  const rate=count<=3?tiers[0].unitPrice:count<=5?tiers[1].unitPrice:count<=7?tiers[2].unitPrice:eligibleIndex<8?tiers[3].unitPrice:(rule.extraUnitPrice??tiers[3].unitPrice);
   return Math.min(item.price,rate);
  });
  let cursor=0;
