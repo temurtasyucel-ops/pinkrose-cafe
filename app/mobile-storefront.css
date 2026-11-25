@@ -358,3 +358,266 @@ footer .wordmark { color: #fff0f6; }
     min-height: 48px;
   }
 }
+
+
+/* Homepage mobile refinement: keep the first screen compact and ordering actions reachable. */
+@media (max-width: 700px) {
+  body:has(.hero) .mobile-order-bar {
+    display: flex;
+  }
+
+  .hero {
+    min-height: 0;
+    align-content: initial;
+    grid-template-columns: minmax(0, 1.15fr) minmax(112px, .85fr);
+    align-items: center;
+    gap: 10px;
+    padding: 18px 5%;
+  }
+
+  .hero-copy {
+    min-height: 0;
+    justify-content: initial;
+    padding: 0;
+  }
+
+  .hero .eyebrow {
+    display: block !important;
+    font-size: 9px;
+    line-height: 1.4;
+    letter-spacing: .08em;
+  }
+
+  .hero h1 {
+    max-width: none;
+    margin: 9px 0 12px;
+    font-size: clamp(25px, 6.3vw, 34px);
+    line-height: 1.1;
+    letter-spacing: -.035em;
+  }
+
+  .hero .hero-quality {
+    display: block !important;
+    margin: 0 0 12px;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .hero .hero-foot,
+  .hero .hero-box-link {
+    display: none !important;
+  }
+
+  .hero-copy > .button {
+    width: auto;
+    min-height: 46px;
+    max-width: 100%;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .hero-photo {
+    display: flex !important;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    max-height: 190px;
+    aspect-ratio: 1 / 1;
+    align-self: center;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .hero-photo .single {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 180px;
+    object-fit: contain !important;
+  }
+
+  .home-service-note {
+    padding: 9px 5%;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .menu.section {
+    padding: 22px 5% 28px;
+  }
+
+  .home-menu .product-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .home-menu .product {
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+    align-items: center;
+    gap: 11px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .home-menu .product-gallery {
+    min-width: 0;
+  }
+
+  .home-menu .product-info {
+    min-width: 0;
+    padding: 0;
+  }
+
+  .home-menu .product h3 {
+    font-size: 20px;
+    line-height: 1.12;
+  }
+
+  .home-menu .product-info > .eyebrow {
+    display: none;
+  }
+
+  .home-menu .product-info > .product-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .home-menu .product-info .product-flavours {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  .home-menu .product-nutrition {
+    gap: 2px 7px;
+    margin: 4px 0;
+  }
+
+  .home-menu .product-nutrition > strong {
+    font-size: 11px;
+  }
+
+  .home-menu .product-nutrition > small {
+    font-size: 9px;
+  }
+
+  .home-menu .product-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px;
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .home-menu .product .price strong {
+    font-size: 17px;
+  }
+
+  .home-menu .product .add-button {
+    width: 100%;
+    min-height: 46px;
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .home-menu .all-cookies-link {
+    margin-top: 14px;
+  }
+
+  .home-menu .all-cookies-link .button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  /* The fixed bottom bar already provides the box-builder route. */
+  .shop-shortcuts {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 5% 22px;
+  }
+
+  .shop-shortcuts > a:first-child {
+    display: none;
+  }
+
+  .shop-shortcuts > a:last-child {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    padding: 14px;
+  }
+
+  .shop-shortcuts > a:last-child h2 {
+    grid-column: 1;
+    font-size: 19px;
+  }
+
+  .shop-shortcuts > a:last-child p {
+    grid-column: 1;
+    font-size: 11px;
+  }
+
+  .shop-shortcuts > a:last-child > span:last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    max-width: 110px;
+    font-size: 11px;
+  }
+
+  .mobile-order-bar {
+    gap: 8px;
+    padding: 8px 5%;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .mobile-order-bar .mobile-more {
+    min-height: 48px;
+    font-size: 12px;
+  }
+
+  .mobile-order-bar > .button {
+    min-height: 48px;
+    font-size: 13px;
+  }
+
+  .site-information {
+    padding: 20px 5%;
+  }
+
+  .site-information .story > summary {
+    min-height: 52px;
+    padding: 12px 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero {
+    grid-template-columns: minmax(0, 1.12fr) minmax(100px, .88fr);
+    gap: 7px;
+  }
+
+  .hero h1 {
+    font-size: 24px;
+  }
+
+  .hero .hero-quality {
+    font-size: 10px;
+  }
+
+  .home-menu .product {
+    grid-template-columns: minmax(0, .76fr) minmax(0, 1.24fr);
+    gap: 9px;
+    padding: 9px;
+  }
+
+  .home-menu .product h3 {
+    font-size: 18px;
+  }
+}
